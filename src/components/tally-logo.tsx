@@ -13,7 +13,7 @@ export function TallyMark({ className = "" }: { className?: string }) {
 
 export function TallyLogo({ compact = false }: { compact?: boolean }) {
   return (
-    <span className="inline-flex items-center gap-2.5 text-foreground">
+    <span className="inline-flex items-center gap-2.5">
       <TallyMark />
       {!compact && <span className="text-lg font-bold tracking-[0.08em]">TALLY</span>}
     </span>
