@@ -28,6 +28,8 @@ function Index() {
   const [active, setActive] = useState(0);
   const { total, occupied, rooms, transactions } = useTally();
   useEffect(() => { const timer = window.setInterval(() => setActive((value) => (value + 1) % 4), 5000); return () => window.clearInterval(timer); }, []);
+  const currentTab = tabs[active] ?? tabs[0];
+  if (!currentTab) return null;
   return (
     <div>
       <section className="overflow-hidden border-b border-border">
@@ -43,7 +45,7 @@ function Index() {
           <div className="grid border border-border bg-background lg:grid-cols-[0.85fr_1.5fr]">
             <div className="border-b border-border lg:border-b-0 lg:border-r">{tabs.map((tab, index) => <button key={tab.title} onClick={() => setActive(index)} className={`flex w-full items-center gap-4 border-b border-border px-5 py-5 text-left last:border-0 ${active === index ? "bg-primary text-primary-foreground" : "hover:bg-secondary"}`}><tab.icon className="size-5" /><span><b className="block text-sm">{tab.title}</b><small className="mt-1 block opacity-60">0{index + 1} / 04</small></span></button>)}</div>
             <div className="min-h-108 p-6 md:p-10">
-              <div className="flex items-start justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Live reception protocol</p><h2 className="mt-3 text-3xl font-semibold">{tabs[active].title}</h2><p className="mt-3 max-w-lg text-muted-foreground">{tabs[active].note}</p></div><span className="hidden size-12 items-center justify-center rounded-full bg-gold text-foreground md:flex"><TallyMark className="size-6" /></span></div>
+              <div className="flex items-start justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Live reception protocol</p><h2 className="mt-3 text-3xl font-semibold">{currentTab.title}</h2><p className="mt-3 max-w-lg text-muted-foreground">{currentTab.note}</p></div><span className="hidden size-12 items-center justify-center rounded-full bg-gold text-foreground md:flex"><TallyMark className="size-6" /></span></div>
               {active === 0 && <div className="animate-fade-in-overlay mt-10 grid gap-3 sm:grid-cols-3">{["MTN MoMo", "Telecel Cash", "Cash / Card"].map((item) => <div key={item} className="border border-border p-5"><span className="flex size-9 items-center justify-center rounded-full bg-secondary"><Check className="size-4" /></span><b className="mt-8 block text-sm">{item}</b><span className="mt-1 block text-xs text-muted-foreground">Ready to collect</span></div>)}</div>}
               {active === 1 && <div className="animate-fade-in-overlay mt-10 grid grid-cols-4 gap-2">{rooms.map((room) => <div key={room.number} className={`aspect-square border p-3 ${room.status === "Available" ? "border-border" : "border-primary bg-primary text-primary-foreground"}`}><b>{room.number}</b><span className="mt-2 block text-[10px] uppercase opacity-60">{room.status}</span></div>)}</div>}
               {active === 2 && <div className="animate-fade-in-overlay mt-10 border-t border-border pt-8"><span className="text-xs text-muted-foreground">Today’s total tally</span><strong className="mt-2 block text-5xl md:text-7xl">{formatGHS(total)}</strong><p className="mt-6 text-sm text-muted-foreground">{transactions.length} deposits · {occupied}/8 rooms secured</p></div>}
