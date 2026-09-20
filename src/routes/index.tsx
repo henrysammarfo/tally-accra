@@ -99,7 +99,7 @@ function Overlay({ active }: { active: TabId }) {
   }[active];
 
   return (
-    <div className="animate-slide-up-overlay absolute left-1/2 top-1/2 w-[calc(100%-3rem)] max-w-lg rounded-2xl bg-background p-6 text-left shadow-2xl md:p-8">
+    <div className="animate-slide-up-overlay absolute left-1/2 top-1/2 w-[calc(100%-3rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-background p-6 text-left shadow-2xl md:p-8">
       <div className="mb-6 flex items-start justify-between gap-4"><div><p className="text-xs font-medium uppercase text-muted-foreground">Tally intelligent workflow</p><h2 className="mt-2 text-2xl font-semibold">{content.title}</h2><p className="mt-1 text-sm text-muted-foreground">{content.subtitle}</p></div>{active === "testing" && <CircleCheck className="size-8 text-success" />}</div>
       <div className="mb-6 h-2 overflow-hidden rounded-full bg-secondary"><div className={`h-full rounded-full ${content.tone}`} style={{ width: content.progress }} /></div>
       <div className="grid gap-2 sm:grid-cols-2">{content.items.map((item, index) => <div key={item} className="flex items-center gap-2 rounded-lg border border-border px-3 py-3 text-sm"><span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-secondary text-[10px]">{active === "deploy" || active === "testing" ? <Check className="size-3" /> : index + 1}</span>{item}</div>)}</div>

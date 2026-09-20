@@ -12,6 +12,21 @@ type TallyContextValue = {
   toggleRoom: (roomNumber: string) => void;
 };
 
+const roomStatuses = new Set(["Occupied", "Locked", "Available", "Cleaning"]);
+const paymentMethods = new Set(["MTN MoMo", "Telecel Cash", "Cash Till", "Visa / Mastercard"]);
+
+function isStoredRoom(value: unknown): value is Room {
+  if (!value || typeof value !== "object") return false;
+  const room = value as Partial<Room>;
+  return typeof room.number === "string" && typeof room.type === "string" && typeof room.rate === "number" && typeof room.status === "string" && roomStatuses.has(room.status);
+}
+
+function isStoredTransaction(value: unknown): value is Transaction {
+  if (!value || typeof value !== "object") return false;
+  const transaction = value as Partial<Transaction>;
+  return typeof transaction.id === "string" && typeof transaction.guest === "string" && typeof transaction.room === "string" && typeof transaction.amount === "number" && Number.isFinite(transaction.amount) && typeof transaction.method === "string" && paymentMethods.has(transaction.method) && (transaction.currency === "GHS" || transaction.currency === "USD");
+}
+
 const TallyContext = createContext<TallyContextValue | null>(null);
 
 export function TallyProvider({ children }: { children: ReactNode }) {
@@ -23,9 +38,11 @@ export function TallyProvider({ children }: { children: ReactNode }) {
     if (!saved) return;
     try {
       const value = JSON.parse(saved) as { rooms?: Room[]; transactions?: Transaction[] };
-      if (value.rooms && value.transactions) {
+      if (Array.isArray(value.rooms) && value.rooms.length === initialRooms.length && value.rooms.every(isStoredRoom) && Array.isArray(value.transactions) && value.transactions.every(isStoredTransaction)) {
         setRooms(value.rooms);
         setTransactions(value.transactions);
+      } else {
+        window.localStorage.removeItem("tally-live-state");
       }
     } catch {
       window.localStorage.removeItem("tally-live-state");
