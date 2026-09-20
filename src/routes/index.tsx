@@ -1,10 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BarChart3, Check, Coins, KeyRound, ShieldCheck, Star, Wallet, ArrowRight } from "lucide-react";
+import { BarChart3, BookOpen, Check, CircleCheck, Rocket, Star, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { TallyMark } from "@/components/tally-logo";
-import { useTally } from "@/lib/tally-store";
-import { formatGHS } from "@/lib/tally-data";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [
@@ -12,52 +9,103 @@ export const Route = createFileRoute("/")({
     { name: "description", content: "The ultra-focused guest-house till for fast Accra deposits, room locks, and daily close." },
     { property: "og:title", content: "TALLY — Accra Guest-House Till" },
     { property: "og:description", content: "Take deposits in seconds, lock room nights, and balance the daily ledger." },
-    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" },
-  ]}),
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: Index,
 });
 
 const tabs = [
-  { title: "Take Deposit", icon: Coins, note: "MoMo, cash or card. Guest checked in before the queue builds." },
-  { title: "Lock Room Night", icon: KeyRound, note: "Assign the room, secure the night, and make occupancy visible." },
-  { title: "Live Daily Tally", icon: BarChart3, note: "One clean number for the shift in Ghana cedis and US dollars." },
-  { title: "Audit & Proof", icon: ShieldCheck, note: "Every deposit leaves an immutable protocol trail and receipt." },
-];
+  { id: "analyse", label: "Analyse", icon: BarChart3 },
+  { id: "train", label: "Train", icon: BookOpen },
+  { id: "testing", label: "Testing", icon: Users },
+  { id: "deploy", label: "Deploy", icon: Rocket },
+] as const;
+
+type TabId = (typeof tabs)[number]["id"];
 
 function Index() {
-  const [active, setActive] = useState(0);
-  const { total, occupied, rooms, transactions } = useTally();
-  useEffect(() => { const timer = window.setInterval(() => setActive((value) => (value + 1) % 4), 5000); return () => window.clearInterval(timer); }, []);
-  const currentTab = tabs[active] ?? tabs[0];
-  if (!currentTab) return null;
+  const [active, setActive] = useState<TabId>("analyse");
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActive((current) => {
+        const index = tabs.findIndex((tab) => tab.id === current);
+        return tabs[(index + 1) % tabs.length]?.id ?? "analyse";
+      });
+    }, 4000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   return (
-    <div>
-      <section className="overflow-hidden border-b border-border">
-        <div className="mx-auto max-w-7xl px-6 pb-16 pt-18 md:pb-24 md:pt-24">
-          <div className="animate-fade-in-up inline-flex items-center gap-3 border border-border p-2 pr-4 text-xs font-medium"><span className="flex size-8 items-center justify-center bg-primary text-primary-foreground"><Star className="size-4 fill-current" /></span>4.95 rating across 140+ Accra guest-houses & boutique stays</div>
-          <h1 className="animate-fade-in-up mt-9 max-w-5xl text-5xl font-semibold leading-[0.98] tracking-normal md:text-8xl" style={{ animationDelay: "0.1s" }}>Take Deposit.<br />Lock The Night.<br /><span className="bg-gradient-to-r from-foreground via-muted-foreground to-border bg-clip-text text-transparent">Tally Accra Live.</span></h1>
-          <p className="animate-fade-in-up mt-7 max-w-2xl text-lg leading-8 text-muted-foreground" style={{ animationDelay: "0.2s" }}>The ultra-focused till for Accra guest-houses. Record deposits in 8 seconds, lock room nights, and balance today’s ledger without the mega-POS bloat.</p>
-          <div className="animate-fade-in-up mt-8 flex flex-wrap gap-3" style={{ animationDelay: "0.3s" }}><Button asChild size="lg" className="rounded-full"><Link to="/dashboard">Launch Till Demo<ArrowRight /></Link></Button><Button asChild size="lg" variant="outline" className="rounded-full"><Link to="/deposit">Take Instant Deposit<Wallet /></Link></Button></div>
+    <div className="bg-background">
+      <section className="mx-auto max-w-7xl px-6 pb-32 pt-24 text-center">
+        <div className="animate-fade-in-up mb-8 inline-flex items-center gap-2 opacity-0" style={{ animationDelay: "0.2s" }}>
+          <span className="flex size-6 items-center justify-center rounded border border-input"><Star className="size-3.5 fill-current" /></span>
+          <span className="text-sm font-medium">4.9 rating from 18.3K+ users</span>
         </div>
-      </section>
-      <section className="bg-secondary py-16 md:py-24">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid border border-border bg-background lg:grid-cols-[0.85fr_1.5fr]">
-            <div className="border-b border-border lg:border-b-0 lg:border-r">{tabs.map((tab, index) => <button key={tab.title} onClick={() => setActive(index)} className={`flex w-full items-center gap-4 border-b border-border px-5 py-5 text-left last:border-0 ${active === index ? "bg-primary text-primary-foreground" : "hover:bg-secondary"}`}><tab.icon className="size-5" /><span><b className="block text-sm">{tab.title}</b><small className="mt-1 block opacity-60">0{index + 1} / 04</small></span></button>)}</div>
-            <div className="min-h-108 p-6 md:p-10">
-              <div className="flex items-start justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Live reception protocol</p><h2 className="mt-3 text-3xl font-semibold">{currentTab.title}</h2><p className="mt-3 max-w-lg text-muted-foreground">{currentTab.note}</p></div><span className="hidden size-12 items-center justify-center rounded-full bg-gold text-foreground md:flex"><TallyMark className="size-6" /></span></div>
-              {active === 0 && <div className="animate-fade-in-overlay mt-10 grid gap-3 sm:grid-cols-3">{["MTN MoMo", "Telecel Cash", "Cash / Card"].map((item) => <div key={item} className="border border-border p-5"><span className="flex size-9 items-center justify-center rounded-full bg-secondary"><Check className="size-4" /></span><b className="mt-8 block text-sm">{item}</b><span className="mt-1 block text-xs text-muted-foreground">Ready to collect</span></div>)}</div>}
-              {active === 1 && <div className="animate-fade-in-overlay mt-10 grid grid-cols-4 gap-2">{rooms.map((room) => <div key={room.number} className={`aspect-square border p-3 ${room.status === "Available" ? "border-border" : "border-primary bg-primary text-primary-foreground"}`}><b>{room.number}</b><span className="mt-2 block text-[10px] uppercase opacity-60">{room.status}</span></div>)}</div>}
-              {active === 2 && <div className="animate-fade-in-overlay mt-10 border-t border-border pt-8"><span className="text-xs text-muted-foreground">Today’s total tally</span><strong className="mt-2 block text-5xl md:text-7xl">{formatGHS(total)}</strong><p className="mt-6 text-sm text-muted-foreground">{transactions.length} deposits · {occupied}/8 rooms secured</p></div>}
-              {active === 3 && <div className="animate-fade-in-overlay mt-10 space-y-3">{["createDeposit", "listToday", "assignNight"].map((item, index) => <div key={item} className="flex items-center justify-between border border-border px-4 py-4 font-mono text-sm"><span>{item}</span><span className="text-success">200 · 0{8 + index}ms</span></div>)}</div>}
-            </div>
+
+        <h1 className="animate-fade-in-up mb-5 text-6xl font-normal leading-[1.1] tracking-tight opacity-0 md:text-7xl lg:text-[80px]" style={{ animationDelay: "0.3s" }}>
+          Take Deposit. Lock The Night.<br />
+          <span className="bg-gradient-to-r from-foreground via-muted-foreground to-input bg-clip-text text-transparent">Tally Accra Live.</span>
+        </h1>
+        <p className="animate-fade-in-up mx-auto mb-8 max-w-2xl text-lg text-muted-foreground opacity-0 md:text-xl" style={{ animationDelay: "0.4s" }}>
+          Take deposits in 8 seconds, lock room nights, and balance today’s ledger without the mega-POS bloat.
+        </p>
+        <div className="animate-fade-in-up mb-12 opacity-0" style={{ animationDelay: "0.5s" }}>
+          <Button asChild className="px-8 py-3 text-base"><Link to="/deposit">Open Guest Till</Link></Button>
+        </div>
+
+        <div className="animate-fade-in-up mb-8 flex justify-center opacity-0" style={{ animationDelay: "0.6s" }}>
+          <div className="grid w-full max-w-xl grid-cols-2 gap-1 rounded-lg bg-secondary p-1 md:hidden">
+            {tabs.map((tab) => <TabButton key={tab.id} tab={tab} active={active === tab.id} onClick={() => setActive(tab.id)} />)}
           </div>
-          <div className="mt-10 grid grid-cols-2 gap-px bg-border border border-border md:grid-cols-5">{["Osu Heritage Suites","Airport Residential Villas","Labone Haven","Cantonments Lodge","East Legon Courtyard"].map((name) => <div key={name} className="flex min-h-24 items-center justify-center bg-background p-4 text-center text-xs font-semibold uppercase text-muted-foreground">{name}</div>)}</div>
+          <div className="hidden items-center rounded-lg bg-secondary p-1 md:flex">
+            {tabs.map((tab, index) => <div key={tab.id} className="flex items-center">{index > 0 && <span className="h-5 w-px bg-input" />}<TabButton tab={tab} active={active === tab.id} onClick={() => setActive(tab.id)} /></div>)}
+          </div>
+        </div>
+
+        <div className="animate-fade-in-up relative h-[400px] overflow-hidden rounded-3xl bg-primary opacity-0 md:h-[500px]" style={{ animationDelay: "0.7s" }}>
+          <video src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260319_165750_358b1e72-c921-48b7-aaac-f200994f32fb.mp4" autoPlay loop muted playsInline className="h-full w-full object-cover" />
+          <div key={active} className="animate-fade-in-overlay absolute inset-0 bg-overlay">
+            <Overlay active={active} />
+          </div>
+        </div>
+
+        <div className="animate-fade-in-up mt-24 flex flex-wrap items-center justify-center gap-10 text-muted-foreground opacity-0 md:gap-12" style={{ animationDelay: "0.8s" }}>
+          <span className="text-sm font-bold tracking-[0.16em]">INTERSCOPE</span>
+          <span className="flex items-center gap-2 text-base font-bold"><span className="size-5 rounded-full bg-foreground" />SPOTIFY</span>
+          <span className="flex items-center gap-2 text-lg font-semibold"><DotGrid />Nexera</span>
+          <span className="font-serif text-2xl italic">M3</span>
+          <span className="flex items-center gap-2 text-xs font-semibold tracking-[0.12em]"><span className="flex size-8 items-center justify-center rounded-full border border-current">LC</span>LAURA COLE</span>
+          <span className="flex items-center gap-2 text-lg font-medium"><span className="grid grid-cols-2 gap-1">{[0,1,2,3].map((dot) => <i key={dot} className="size-1.5 rounded-full bg-current" />)}</span>vertex</span>
         </div>
       </section>
-      <section className="border-t border-border py-18"><div className="mx-auto max-w-7xl px-6"><div className="flex items-end justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Tally supply division</p><h2 className="mt-3 text-4xl font-semibold">Night shift uniform.</h2></div><Link to="/merch" className="text-sm font-semibold underline underline-offset-4">View brand system</Link></div><div className="mt-10 grid gap-4 md:grid-cols-3"><MerchPreview name="440 GSM Heavy Hoodie" kind="hoodie" /><MerchPreview name="Desk Strapback" kind="cap" /><MerchPreview name="Till Receipt Pin" kind="pin" /></div></div></section>
     </div>
   );
 }
 
-function MerchPreview({ name, kind }: { name: string; kind: string }) { return <div className="group border border-border bg-secondary"><div className="flex aspect-[4/3] items-center justify-center"><div className={`${kind === "hoodie" ? "h-44 w-36 rounded-t-[3rem]" : kind === "cap" ? "h-24 w-44 rounded-t-full" : "size-24 rotate-6"} flex items-center justify-center bg-primary text-primary-foreground shadow-2xl transition-transform group-hover:-translate-y-1`}><TallyMark className="size-12 text-gold" /></div></div><div className="border-t border-border bg-background p-5"><b>{name}</b><span className="mt-1 block text-xs text-muted-foreground">Accra issue · Obsidian / Cedi Gold</span></div></div>; }
+function TabButton({ tab, active, onClick }: { tab: (typeof tabs)[number]; active: boolean; onClick: () => void }) {
+  const Icon = tab.icon;
+  return <Button type="button" variant="ghost" onClick={onClick} className={`min-w-32 rounded-md px-5 ${active ? "bg-background text-foreground shadow-sm hover:bg-background" : "text-muted-foreground"}`}><Icon className="size-4" />{tab.label}</Button>;
+}
+
+function Overlay({ active }: { active: TabId }) {
+  const content = {
+    analyse: { title: "Set Up Your AI Workspace", subtitle: "Workspace configuration", progress: "25%", tone: "bg-chart-4", items: ["Connect your data", "Choose automations", "Invite your team", "Review workspace"] },
+    train: { title: "AI Model Training", subtitle: "67% complete · 8m remaining", progress: "67%", tone: "bg-chart-1", items: ["Accuracy 94.8%", "Loss 0.042", "12.4K samples", "Epoch 18 / 27"] },
+    testing: { title: "Test Suite Results", subtitle: "127 / 127 tests passed", progress: "100%", tone: "bg-success", items: ["Unit tests passed", "Integrations passed", "Security checks passed", "Ready to deploy"] },
+    deploy: { title: "Deploy to Production", subtitle: "All systems are ready", progress: "100%", tone: "bg-foreground", items: ["Environment verified", "Database migrated", "Tests approved", "Rollback prepared"] },
+  }[active];
+
+  return (
+    <div className="animate-slide-up-overlay absolute left-1/2 top-1/2 w-[calc(100%-3rem)] max-w-lg rounded-2xl bg-background p-6 text-left shadow-2xl md:p-8">
+      <div className="mb-6 flex items-start justify-between gap-4"><div><p className="text-xs font-medium uppercase text-muted-foreground">Tally intelligent workflow</p><h2 className="mt-2 text-2xl font-semibold">{content.title}</h2><p className="mt-1 text-sm text-muted-foreground">{content.subtitle}</p></div>{active === "testing" && <CircleCheck className="size-8 text-success" />}</div>
+      <div className="mb-6 h-2 overflow-hidden rounded-full bg-secondary"><div className={`h-full rounded-full ${content.tone}`} style={{ width: content.progress }} /></div>
+      <div className="grid gap-2 sm:grid-cols-2">{content.items.map((item, index) => <div key={item} className="flex items-center gap-2 rounded-lg border border-border px-3 py-3 text-sm"><span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-secondary text-[10px]">{active === "deploy" || active === "testing" ? <Check className="size-3" /> : index + 1}</span>{item}</div>)}</div>
+      {active === "deploy" && <Button className="mt-6 w-full">Deploy Now</Button>}
+    </div>
+  );
+}
+
+function DotGrid() { return <span className="grid grid-cols-3 gap-0.5">{[0,1,2,3,4,5,6,7,8].map((dot) => <i key={dot} className="size-1 rounded-full bg-current" />)}</span>; }

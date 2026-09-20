@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, X } from "lucide-react";
+import { Menu, Star, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { TallyLogo } from "./tally-logo";
 import { Button } from "./ui/button";
@@ -17,17 +17,17 @@ export function SiteShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
-        <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-6">
-          <Link to="/" aria-label="Tally home"><TallyLogo /></Link>
-          <nav className="hidden items-center gap-7 lg:flex">
+        <div className="animate-fade-in-up mx-auto flex max-w-7xl items-center justify-between px-6 py-4 opacity-0" style={{ animationDelay: "0.1s" }}>
+          <Link to="/" aria-label="Tally home" className="flex items-center gap-2 text-lg font-semibold"><Star className="size-5 fill-current" />TALLY</Link>
+          <nav className="hidden items-center gap-8 md:flex">
             {navItems.map(([label, to]) => (
-              <Link key={to} to={to} className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground" activeProps={{ className: "text-foreground" }}>{label}</Link>
+              <Link key={to} to={to} className="text-sm text-muted-foreground transition-colors hover:text-foreground" activeProps={{ className: "text-foreground" }}>{label}</Link>
             ))}
           </nav>
-          <Button asChild className="hidden rounded-full px-5 lg:inline-flex"><Link to="/deposit">Open Guest Till</Link></Button>
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setOpen((value) => !value)} aria-label="Toggle menu">{open ? <X /> : <Menu />}</Button>
+          <div className="hidden items-center gap-5 md:flex"><Link to="/dashboard" className="text-sm text-muted-foreground">Login</Link><Button asChild className="px-5 py-2.5"><Link to="/deposit">Open Till</Link></Button></div>
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen((value) => !value)} aria-label="Toggle menu">{open ? <X /> : <Menu />}</Button>
         </div>
-        {open && <nav className="border-t border-border px-6 py-4 lg:hidden">{navItems.map(([label, to]) => <Link key={to} to={to} onClick={() => setOpen(false)} className="block border-b border-border py-3 text-sm font-medium">{label}</Link>)}</nav>}
+        {open && <nav className="border-t border-border px-6 py-4 md:hidden">{navItems.map(([label, to]) => <Link key={to} to={to} onClick={() => setOpen(false)} className="block border-b border-border py-3 text-sm font-medium">{label}</Link>)}<Button asChild className="mt-4 w-full"><Link to="/deposit" onClick={() => setOpen(false)}>Open Till</Link></Button></nav>}
       </header>
       <main>{children}</main>
       <footer className="border-t border-border bg-primary py-10 text-primary-foreground">
