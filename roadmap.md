@@ -5,3 +5,4 @@
 - [x] Build dashboard, deposit, rooms, ledger, and merch routes
 - [x] Add downloadable logo assets and report exports
 - [x] Validate interactions and desktop/mobile layouts
+- [x] Version saved till data with migration and a visible reset-data recovery control
