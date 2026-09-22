@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowUpRight, Coins, DoorOpen, Plus, ReceiptText, Wallet, X, type LucideIcon } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Coins, DoorOpen, Plus, ReceiptText, RotateCcw, Wallet, X, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { PageHeading } from "@/components/page-heading";
 import { Button } from "@/components/ui/button";
