@@ -81,7 +81,7 @@ export function TallyProvider({ children }: { children: ReactNode }) {
   }, [rooms, transactions]);
 
   const resetData = useCallback(() => {
-    window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: CURRENT_VERSION, rooms: initialRooms, transactions: initialTransactions }));
     setRooms(initialRooms);
     setTransactions(initialTransactions);
     setStorageStatus("recovered");
