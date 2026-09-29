@@ -1,0 +1,14 @@
+---
+description: TALLY hackathon dual-track contracts — spine, judging, no scope creep
+alwaysApply: true
+---
+
+# TALLY hackathon
+
+- Submission = Flutter + Serverpod under `tally/` only. React `src/` is marketing.
+- Unique job: deposit → lock night → today’s tally. No inventory/HR/barcode mega-POS.
+- Judging: 30% works · 25% Serverpod · 25% craft · 20% useful (Partiful-verified).
+- Organiser hero: real endpoints + generated client + Postgres persistence.
+- Read `docs/memory/BUILD_SPEC.md` and `docs/memory/CHALLENGE_FACTS.md` before changing architecture.
+- Fact-check with Tavily/TinyFish; never invent dates, stats, or APIs.
+- Stage Bible may arrive later — do not invent it.

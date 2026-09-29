@@ -1,0 +1,6 @@
+enum: MembershipRole
+serialized: byName
+values:
+  - owner
+  - manager
+  - receptionist

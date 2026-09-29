@@ -1,0 +1,11 @@
+class: Organization
+table: organization
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  name: String
+  slug: String
+  createdAt: DateTime, defaultModel=now
+indexes:
+  organization_slug_idx:
+    fields: slug
+    unique: true

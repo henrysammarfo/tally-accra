@@ -1,5 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { DepositForm } from "@/components/deposit-form";
-import { PageHeading } from "@/components/page-heading";
-export const Route = createFileRoute("/deposit")({ head: () => ({ meta: [{ title: "Take Deposit — TALLY" }, { name: "description", content: "Record a guest deposit and lock a room night in one focused flow." }, { property: "og:title", content: "Take Deposit — TALLY" }, { property: "og:description", content: "The fast guest deposit flow for Accra reception desks." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }), component: DepositPage });
-function DepositPage() { return <><PageHeading eyebrow="8-second guest till" title="Take Deposit" description="Name. Room. Money. Lock. Nothing between the desk and a clean handover." /><div className="mx-auto max-w-7xl px-6 py-12"><DepositForm /></div></>; }
+import { LiveTillGate } from "@/components/live-till-gate";
+
+export const Route = createFileRoute("/deposit")({
+  head: () => ({
+    meta: [
+      { title: "Take Deposit — TALLY" },
+      {
+        name: "description",
+        content: "8-second deposit flow on the live Flutter + Serverpod till.",
+      },
+    ],
+  }),
+  component: DepositGate,
+});
+
+function DepositGate() {
+  return (
+    <LiveTillGate
+      title="Take deposit. Lock the night."
+      description="The production 8-second flow runs in the Flutter desk app against real Serverpod endpoints. No browser localStorage till."
+    />
+  );
+}

@@ -1,0 +1,12 @@
+class: AuditEvent
+table: audit_event
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  organizationId: UuidValue, relation(parent=organization, onDelete=Cascade)
+  authUserId: UuidValue
+  action: String
+  detail: String
+  createdAt: DateTime, defaultModel=now
+indexes:
+  audit_org_created_idx:
+    fields: organizationId, createdAt

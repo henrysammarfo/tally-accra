@@ -1,0 +1,12 @@
+---
+description: No mocks, no localStorage till, fail closed — production only
+alwaysApply: true
+---
+
+# No fallbacks
+
+- No mock endpoints, fake deposits, or sample-only spines shipped as “done”.
+- No `localStorage` / `sessionStorage` for till, rooms, ledger, or merch order state.
+- Missing secrets or WAF-blocked LLM → clear error; never invent insight text.
+- Marketing must not claim live Serverpod behaviour unless wired to Track A.
+- Prefer incomplete honest UI over half-wired demos.

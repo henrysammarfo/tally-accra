@@ -1,0 +1,21 @@
+class: Deposit
+table: deposit
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  organizationId: UuidValue, relation(parent=organization, onDelete=Cascade)
+  roomId: UuidValue, relation(parent=room, onDelete=Restrict)
+  guestName: String
+  guestPhone: String
+  nights: int
+  amount: double
+  currency: CurrencyCode
+  method: PaymentMethod
+  receptionistName: String
+  receiptCode: String
+  createdAt: DateTime, defaultModel=now
+indexes:
+  deposit_org_created_idx:
+    fields: organizationId, createdAt
+  deposit_receipt_idx:
+    fields: receiptCode
+    unique: true

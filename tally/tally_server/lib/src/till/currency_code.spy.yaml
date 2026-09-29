@@ -1,0 +1,5 @@
+enum: CurrencyCode
+serialized: byName
+values:
+  - ghs
+  - usd

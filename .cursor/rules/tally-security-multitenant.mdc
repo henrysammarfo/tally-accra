@@ -1,0 +1,13 @@
+---
+description: Multi-tenant isolation, auth sessions, secrets hygiene for TALLY
+alwaysApply: true
+---
+
+# Security & multi-tenant
+
+- Every till row is scoped by `organizationId` from membership — never trust client-supplied tenant id alone.
+- Till endpoints require Serverpod auth (`requireLogin`); reject anonymous writes.
+- Secrets only via env / Serverpod Cloud passwords — never commit keys; never `VITE_*` for API keys.
+- Validate amounts, phones, rooms, payment methods server-side.
+- Honest hardening only — do not claim unhackable.
+- See `docs/memory/SECRETS_POLICY.md`.

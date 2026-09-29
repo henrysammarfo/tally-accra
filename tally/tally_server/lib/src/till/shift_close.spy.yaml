@@ -1,0 +1,14 @@
+class: ShiftClose
+table: shift_close
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  organizationId: UuidValue, relation(parent=organization, onDelete=Cascade)
+  closed: bool, default=false
+  closedAt: DateTime?
+  notes: String?
+  expectedTotal: double?
+  countedTotal: double?
+indexes:
+  shift_close_org_idx:
+    fields: organizationId
+    unique: true
