@@ -32,4 +32,5 @@
 - Henry: no Jev key now → keep fail-closed (honest). Demo scores on offline sync + live tally + free delayed close.
 - Serverpod signup: https://console.serverpod.dev/ (Starter: `…/project/create?planName=starter`). Agent needs `SERVERPOD_CLOUD_TOKEN` after laptop `scloud auth create-token`.
 - GitGuardian blocked PR on 3 scaffold DB/redis passwords in docker-compose / tasks / tests.yml → replaced with low-entropy local placeholders + `passwords.yaml.example`. Tip remediated; GG may still flag older PR commits (no history rewrite — Lovable).
-- Added root `vercel.json` (`tanstack-start-lovable`). Creating/linking Vercel project on team `teamtitanlink`.
+- Added root `vercel.json` (`tanstack-start-lovable`). Linked Vercel project `tally-accra` on team `teamtitanlink`.
+- Real Vercel failure cause: `BLOCKED_PACKAGE` — `@tanstack/react-start@1.168.32` XSS (GHSA-qx66-fv34-fjm8). Bumped to `@tanstack/react-start@1.168.60` (+ router/plugin).
