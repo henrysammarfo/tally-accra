@@ -7,27 +7,46 @@ import '../generated/protocol.dart';
 
 /// TypeSafe Jev (System One) decisions for the Accra night desk.
 /// Fail closed — never invents probabilities when the key is missing.
+///
+/// Key resolution order (first hit wins):
+/// 1. Serverpod password `typesafeAPIKey`
+/// 2. `TYPESAFE_API_KEY` / `JEV_API_KEY` → api.typesafe.ai
+/// 3. `OPENROUTER_API_KEY` → openrouter.ai/api (model typesafe/jev-1.13)
+/// 4. `AI_GATEWAY_API_KEY` → ai-gateway.vercel.sh/typesafe
 class JevService {
   JevService._(this._client);
 
   final TypeSafeClient _client;
 
-  /// Resolves API key from Serverpod passwords, then env.
+  /// Resolves API key + gateway from Serverpod passwords, then env.
   static JevService? fromSession(Session session) {
-    final fromPassword = session.passwords['typesafeAPIKey']?.trim();
-    final key = (fromPassword != null && fromPassword.isNotEmpty)
-        ? fromPassword
-        : resolveApiKey(null);
-    if (key == null || key.isEmpty) return null;
-    return JevService._(TypeSafeClient(apiKey: key));
+    final passwords = session.passwords;
+    final cfg = _resolveConfig(
+      passwordKey: passwords['typesafeAPIKey']?.trim(),
+      openRouterPassword: passwords['openRouterAPIKey']?.trim(),
+      aiGatewayPassword: passwords['aiGatewayAPIKey']?.trim(),
+      typesafeBasePassword: passwords['typesafeBaseUrl']?.trim(),
+    );
+    if (cfg == null) return null;
+    return JevService._(
+      TypeSafeClient(
+        apiKey: cfg.apiKey,
+        baseUrl: cfg.baseUrl,
+        defaultModel: cfg.model,
+      ),
+    );
   }
 
   static JevService? fromEnvironment() {
-    final key = resolveApiKey(null) ??
-        Platform.environment['TYPESAFE_API_KEY'] ??
-        Platform.environment['JEV_API_KEY'];
-    if (key == null || key.isEmpty) return null;
-    return JevService._(TypeSafeClient(apiKey: key));
+    final cfg = _resolveConfig();
+    if (cfg == null) return null;
+    return JevService._(
+      TypeSafeClient(
+        apiKey: cfg.apiKey,
+        baseUrl: cfg.baseUrl,
+        defaultModel: cfg.model,
+      ),
+    );
   }
 
   void close() => _client.close();
@@ -152,4 +171,71 @@ class JevService {
       );
     }
   }
+
+  static _JevConfig? _resolveConfig({
+    String? passwordKey,
+    String? openRouterPassword,
+    String? aiGatewayPassword,
+    String? typesafeBasePassword,
+  }) {
+    final direct = _nonEmpty(passwordKey) ??
+        resolveApiKey(null) ??
+        _env('TYPESAFE_API_KEY') ??
+        _env('JEV_API_KEY');
+    if (direct != null) {
+      return _JevConfig(
+        apiKey: direct,
+        baseUrl: _nonEmpty(typesafeBasePassword) ??
+            _env('TYPESAFE_BASE_URL') ??
+            kDefaultBaseUrl,
+        model: _env('TYPESAFE_DEFAULT_MODEL') ?? kDefaultModel,
+      );
+    }
+
+    final openRouter =
+        _nonEmpty(openRouterPassword) ?? _env('OPENROUTER_API_KEY');
+    if (openRouter != null) {
+      return _JevConfig(
+        apiKey: openRouter,
+        baseUrl: _env('TYPESAFE_BASE_URL') ?? 'https://openrouter.ai/api',
+        model: _env('TYPESAFE_DEFAULT_MODEL') ?? 'typesafe/jev-1.13',
+      );
+    }
+
+    final gateway =
+        _nonEmpty(aiGatewayPassword) ?? _env('AI_GATEWAY_API_KEY');
+    if (gateway != null) {
+      return _JevConfig(
+        apiKey: gateway,
+        baseUrl:
+            _env('TYPESAFE_BASE_URL') ?? 'https://ai-gateway.vercel.sh/typesafe',
+        model: _env('TYPESAFE_DEFAULT_MODEL') ?? 'typesafe-ai/jev',
+      );
+    }
+
+    return null;
+  }
+
+  static String? _env(String name) {
+    final v = Platform.environment[name]?.trim();
+    if (v == null || v.isEmpty) return null;
+    return v;
+  }
+
+  static String? _nonEmpty(String? v) {
+    if (v == null || v.isEmpty) return null;
+    return v;
+  }
+}
+
+class _JevConfig {
+  const _JevConfig({
+    required this.apiKey,
+    required this.baseUrl,
+    required this.model,
+  });
+
+  final String apiKey;
+  final String baseUrl;
+  final String model;
 }

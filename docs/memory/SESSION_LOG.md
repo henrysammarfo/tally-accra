@@ -21,10 +21,8 @@
 - Recommended pivot: **KEEPR / TALLY Sync** — offline deposit+lock → CRDT sync → live owner stream + future-call shift close.
 - Full write-up: `docs/memory/SERVERPOD_TRUE_COLORS_RESEARCH.md`.
 
-## 2026-10-01 — KEEPR pivot shipped (max all axes; judges decide)
+## 2026-10-01 — Keys + competitor analysis
 
-- Locked `docs/memory/KEEPR_SCORE_SPEC.md` — leave prize to judges, force yes on every axis.
-- Server: `syncOfflineDeposits` (idempotent `SyncedMutation`), Jev `recommendRoom`/`judgeShift` via `jev_dart` 0.1.1, `ShiftCloseFutureCall` + `scheduleShiftClose`.
-- Flutter: offline banner, queue, Sync, Jev pick room, judge shift, schedule auto-close.
-- `jev_dart` pinned **0.1.1** (0.1.2+ pulls crimson/analyzer conflict with Flutter).
-- Fail closed without `TYPESAFE_API_KEY` / `typesafeAPIKey`.
+- Documented `KEYS_SETUP.md`: OpenRouter / Vercel AI Gateway / TypeSafe (signup closed) + `SERVERPOD_CLOUD_TOKEN` for headless scloud.
+- Documented `COMPETITORS.md`: Serverpod vs Firebase/Supabase — capability truth only; no invented latency; Starter disables future calls.
+- JevService now accepts `OPENROUTER_API_KEY` and `AI_GATEWAY_API_KEY` gateways.
