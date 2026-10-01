@@ -51,8 +51,9 @@ Browser login does **not** work inside this headless agent. You must either log 
 
 ### Option B1 — Token for the agent (preferred)
 
-1. Create Cloud account: https://console.serverpod.cloud (or “Sign up for Cloud” from docs.serverpod.dev/cloud)
-2. On your machine:
+1. Sign up / log in: **https://console.serverpod.dev/**  
+   New Starter trial (no card): https://console.serverpod.dev/project/create?planName=starter
+2. On your laptop (browser login cannot run in this headless agent):
 
 ```bash
 dart pub global activate serverpod_cloud_cli
@@ -60,7 +61,7 @@ scloud auth login          # browser opens — complete once
 scloud auth create-token   # prints token ONCE — copy it
 ```
 
-3. Give the agent (private follow-up):
+3. Paste to the agent (private follow-up):
 
 ```
 SERVERPOD_CLOUD_TOKEN=<paste token once>

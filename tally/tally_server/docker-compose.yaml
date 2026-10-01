@@ -7,7 +7,8 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: tally
-      POSTGRES_PASSWORD: "uotvNOk-yBsLBOGEB2nEn79JZInDil0B"
+      # Local-only. Keep in sync with config/passwords.yaml (gitignored).
+      POSTGRES_PASSWORD: ${SERVERPOD_PASSWORD_database:-tallydevlocaldb}
     volumes:
       - tally_data:/var/lib/postgresql/data
 
@@ -15,7 +16,7 @@ services:
     image: redis:6.2.6
     ports:
       - "8091:6379"
-    command: redis-server --requirepass "O057M33-kuFAl39hNN6J--8ViDAO5QfJ"
+    command: redis-server --requirepass "${SERVERPOD_PASSWORD_redis:-tallydevlocalredis}"
     environment:
       - REDIS_REPLICATION_MODE=master
 
@@ -27,7 +28,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: tally_test
-      POSTGRES_PASSWORD: "W91AvzfCL2QiVHANQ7sA6FJW5ylcCDhh"
+      POSTGRES_PASSWORD: ${SERVERPOD_PASSWORD_database:-tallytestlocaldb}
     volumes:
       - tally_test_data:/var/lib/postgresql/data
 
@@ -35,7 +36,7 @@ services:
     image: redis:6.2.6
     ports:
       - "9091:6379"
-    command: redis-server --requirepass "UljrUXLVf0XvzAKzxp4xqpe0INQGMoBi"
+    command: redis-server --requirepass "${SERVERPOD_PASSWORD_redis:-tallytestlocalredis}"
     environment:
       - REDIS_REPLICATION_MODE=master
 

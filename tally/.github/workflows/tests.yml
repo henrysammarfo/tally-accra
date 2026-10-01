@@ -11,8 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERSION: '4.0.3'
-      SERVERPOD_PASSWORD_database: 'W91AvzfCL2QiVHANQ7sA6FJW5ylcCDhh'
-      SERVERPOD_PASSWORD_redis: 'UljrUXLVf0XvzAKzxp4xqpe0INQGMoBi'
+      # Low-entropy local placeholders — not production secrets.
+      SERVERPOD_PASSWORD_database: 'tallytestlocaldb'
+      SERVERPOD_PASSWORD_redis: 'tallytestlocalredis'
 
     steps:
       - uses: actions/checkout@v4
