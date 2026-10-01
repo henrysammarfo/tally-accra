@@ -20,11 +20,19 @@ import 'package:serverpod_client/serverpod_client.dart' as _isc;
 import 'package:tally_client/src/protocol/greetings/greeting.dart' as _izwditsc;
 import 'package:tally_client/src/protocol/till/currency_code.dart' as _i1v4n4hs;
 import 'package:tally_client/src/protocol/till/deposit.dart' as _i1k6n5pv;
+import 'package:tally_client/src/protocol/till/offline_deposit_payload.dart'
+    as _itpuq2bv;
 import 'package:tally_client/src/protocol/till/organization.dart' as _iknfjxbk;
 import 'package:tally_client/src/protocol/till/payment_method.dart'
     as _idu4gdmj;
 import 'package:tally_client/src/protocol/till/room.dart' as _iewd2wm7;
+import 'package:tally_client/src/protocol/till/room_recommendation.dart'
+    as _i5sz479o;
 import 'package:tally_client/src/protocol/till/shift_close.dart' as _ibrg3wly;
+import 'package:tally_client/src/protocol/till/shift_judgement.dart'
+    as _i9mhi5zc;
+import 'package:tally_client/src/protocol/till/sync_offline_result.dart'
+    as _ixkmhntm;
 import 'package:tally_client/src/protocol/till/today_tally.dart' as _ikmscqnb;
 import 'protocol.dart' as _il2as5qe;
 
@@ -324,7 +332,8 @@ class EndpointOrganization extends _isc.EndpointRef {
       );
 }
 
-/// Spine till endpoints: createDeposit · assignNight · listToday.
+/// Spine till endpoints: createDeposit · assignNight · listToday ·
+/// syncOfflineDeposits · recommendRoom · judgeShift · scheduleShiftClose.
 /// {@category Endpoint}
 class EndpointTill extends _isc.EndpointRef {
   EndpointTill(_isc.EndpointCaller caller) : super(caller);
@@ -352,6 +361,49 @@ class EndpointTill extends _isc.EndpointRef {
       'amount': amount,
       'currency': currency,
       'method': method,
+    },
+  );
+
+  /// Replay offline desk deposits with idempotent [clientMutationId]s.
+  _ida.Future<_ixkmhntm.SyncOfflineResult> syncOfflineDeposits({
+    required List<_itpuq2bv.OfflineDepositPayload> payloads,
+  }) => caller.callServerEndpoint<_ixkmhntm.SyncOfflineResult>(
+    'till',
+    'syncOfflineDeposits',
+    {'payloads': payloads},
+  );
+
+  /// Jev `choice`: pick the best open room for a walk-in.
+  _ida.Future<_i5sz479o.RoomRecommendation> recommendRoom({
+    required String guestHint,
+    required int nights,
+  }) => caller.callServerEndpoint<_i5sz479o.RoomRecommendation>(
+    'till',
+    'recommendRoom',
+    {
+      'guestHint': guestHint,
+      'nights': nights,
+    },
+  );
+
+  /// Jev `noul`: is this shift healthy to close?
+  _ida.Future<_i9mhi5zc.ShiftJudgement> judgeShift() =>
+      caller.callServerEndpoint<_i9mhi5zc.ShiftJudgement>(
+        'till',
+        'judgeShift',
+        {},
+      );
+
+  /// Schedule a Serverpod future call to auto-close the shift.
+  _ida.Future<String> scheduleShiftClose({
+    required int delaySeconds,
+    required String notes,
+  }) => caller.callServerEndpoint<String>(
+    'till',
+    'scheduleShiftClose',
+    {
+      'delaySeconds': delaySeconds,
+      'notes': notes,
     },
   );
 

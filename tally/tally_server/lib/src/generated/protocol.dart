@@ -17,17 +17,25 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
+import 'package:tally_server/src/generated/till/offline_deposit_payload.dart'
+    as _i2ijly4n;
 import 'greetings/greeting.dart' as _izw8z7ou;
 import 'till/audit_event.dart' as _iqbaaylr;
 import 'till/currency_code.dart' as _i0m10zoh;
 import 'till/deposit.dart' as _im00e6z9;
 import 'till/membership.dart' as _ir2s5cd6;
 import 'till/membership_role.dart' as _i5o1iqnh;
+import 'till/offline_deposit_payload.dart' as _idd7hlek;
 import 'till/organization.dart' as _itaa86xl;
 import 'till/payment_method.dart' as _itkv9ghh;
 import 'till/room.dart' as _iz3zju01;
+import 'till/room_recommendation.dart' as _ic9hnfei;
 import 'till/room_status.dart' as _i9ebolaq;
 import 'till/shift_close.dart' as _iwm07xqw;
+import 'till/shift_close_job.dart' as _ifz52290;
+import 'till/shift_judgement.dart' as _ikv292jv;
+import 'till/sync_offline_result.dart' as _irimsbbb;
+import 'till/synced_mutation.dart' as _ixhibl8j;
 import 'till/till_exception.dart' as _i6xfzno2;
 import 'till/today_tally.dart' as _i1nd03fb;
 export 'greetings/greeting.dart';
@@ -36,11 +44,17 @@ export 'till/currency_code.dart';
 export 'till/deposit.dart';
 export 'till/membership.dart';
 export 'till/membership_role.dart';
+export 'till/offline_deposit_payload.dart';
 export 'till/organization.dart';
 export 'till/payment_method.dart';
 export 'till/room.dart';
+export 'till/room_recommendation.dart';
 export 'till/room_status.dart';
 export 'till/shift_close.dart';
+export 'till/shift_close_job.dart';
+export 'till/shift_judgement.dart';
+export 'till/sync_offline_result.dart';
+export 'till/synced_mutation.dart';
 export 'till/till_exception.dart';
 export 'till/today_tally.dart';
 
@@ -586,6 +600,77 @@ class Protocol extends _is.DatabaseSerializationManager {
       ],
       managed: true,
     ),
+    _isp.TableDefinition(
+      name: 'synced_mutation',
+      dartName: 'SyncedMutation',
+      schema: 'public',
+      module: 'tally',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'organizationId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'clientMutationId',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'depositId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: true,
+          dartType: 'UuidValue?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'synced_mutation_fk_0',
+          columns: ['organizationId'],
+          referenceTable: 'organization',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'synced_mutation_org_client_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'organizationId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'clientMutationId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     ..._iais.Protocol.targetTableDefinitions,
     ..._iacs.Protocol.targetTableDefinitions,
     ..._isp.Protocol.targetTableDefinitions,
@@ -636,6 +721,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _i5o1iqnh.MembershipRole) {
       return _i5o1iqnh.MembershipRole.fromJson(data) as T;
     }
+    if (t == _idd7hlek.OfflineDepositPayload) {
+      return _idd7hlek.OfflineDepositPayload.fromJson(data) as T;
+    }
     if (t == _itaa86xl.Organization) {
       return _itaa86xl.Organization.fromJson(data) as T;
     }
@@ -645,11 +733,26 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _iz3zju01.Room) {
       return _iz3zju01.Room.fromJson(data) as T;
     }
+    if (t == _ic9hnfei.RoomRecommendation) {
+      return _ic9hnfei.RoomRecommendation.fromJson(data) as T;
+    }
     if (t == _i9ebolaq.RoomStatus) {
       return _i9ebolaq.RoomStatus.fromJson(data) as T;
     }
     if (t == _iwm07xqw.ShiftClose) {
       return _iwm07xqw.ShiftClose.fromJson(data) as T;
+    }
+    if (t == _ifz52290.ShiftCloseJob) {
+      return _ifz52290.ShiftCloseJob.fromJson(data) as T;
+    }
+    if (t == _ikv292jv.ShiftJudgement) {
+      return _ikv292jv.ShiftJudgement.fromJson(data) as T;
+    }
+    if (t == _irimsbbb.SyncOfflineResult) {
+      return _irimsbbb.SyncOfflineResult.fromJson(data) as T;
+    }
+    if (t == _ixhibl8j.SyncedMutation) {
+      return _ixhibl8j.SyncedMutation.fromJson(data) as T;
     }
     if (t == _i6xfzno2.TillException) {
       return _i6xfzno2.TillException.fromJson(data) as T;
@@ -676,6 +779,12 @@ class Protocol extends _is.DatabaseSerializationManager {
       return (data != null ? _i5o1iqnh.MembershipRole.fromJson(data) : null)
           as T;
     }
+    if (t == _is.getType<_idd7hlek.OfflineDepositPayload?>()) {
+      return (data != null
+              ? _idd7hlek.OfflineDepositPayload.fromJson(data)
+              : null)
+          as T;
+    }
     if (t == _is.getType<_itaa86xl.Organization?>()) {
       return (data != null ? _itaa86xl.Organization.fromJson(data) : null) as T;
     }
@@ -686,11 +795,31 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_iz3zju01.Room?>()) {
       return (data != null ? _iz3zju01.Room.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_ic9hnfei.RoomRecommendation?>()) {
+      return (data != null ? _ic9hnfei.RoomRecommendation.fromJson(data) : null)
+          as T;
+    }
     if (t == _is.getType<_i9ebolaq.RoomStatus?>()) {
       return (data != null ? _i9ebolaq.RoomStatus.fromJson(data) : null) as T;
     }
     if (t == _is.getType<_iwm07xqw.ShiftClose?>()) {
       return (data != null ? _iwm07xqw.ShiftClose.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ifz52290.ShiftCloseJob?>()) {
+      return (data != null ? _ifz52290.ShiftCloseJob.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_ikv292jv.ShiftJudgement?>()) {
+      return (data != null ? _ikv292jv.ShiftJudgement.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_irimsbbb.SyncOfflineResult?>()) {
+      return (data != null ? _irimsbbb.SyncOfflineResult.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_ixhibl8j.SyncedMutation?>()) {
+      return (data != null ? _ixhibl8j.SyncedMutation.fromJson(data) : null)
+          as T;
     }
     if (t == _is.getType<_i6xfzno2.TillException?>()) {
       return (data != null ? _i6xfzno2.TillException.fromJson(data) : null)
@@ -699,11 +828,20 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_i1nd03fb.TodayTally?>()) {
       return (data != null ? _i1nd03fb.TodayTally.fromJson(data) : null) as T;
     }
+    if (t == Map<String, double>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<double>(v)),
+          )
+          as T;
+    }
     if (t == List<_im00e6z9.Deposit>) {
       return (data as List)
               .map((e) => deserialize<_im00e6z9.Deposit>(e))
               .toList()
           as T;
+    }
+    if (t == List<String>) {
+      return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
     if (t == List<_iz3zju01.Room>) {
       return (data as List).map((e) => deserialize<_iz3zju01.Room>(e)).toList()
@@ -712,6 +850,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == List<_iqbaaylr.AuditEvent>) {
       return (data as List)
               .map((e) => deserialize<_iqbaaylr.AuditEvent>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i2ijly4n.OfflineDepositPayload>) {
+      return (data as List)
+              .map((e) => deserialize<_i2ijly4n.OfflineDepositPayload>(e))
               .toList()
           as T;
     }
@@ -735,11 +879,17 @@ class Protocol extends _is.DatabaseSerializationManager {
       _im00e6z9.Deposit => 'Deposit',
       _ir2s5cd6.Membership => 'Membership',
       _i5o1iqnh.MembershipRole => 'MembershipRole',
+      _idd7hlek.OfflineDepositPayload => 'OfflineDepositPayload',
       _itaa86xl.Organization => 'Organization',
       _itkv9ghh.PaymentMethod => 'PaymentMethod',
       _iz3zju01.Room => 'Room',
+      _ic9hnfei.RoomRecommendation => 'RoomRecommendation',
       _i9ebolaq.RoomStatus => 'RoomStatus',
       _iwm07xqw.ShiftClose => 'ShiftClose',
+      _ifz52290.ShiftCloseJob => 'ShiftCloseJob',
+      _ikv292jv.ShiftJudgement => 'ShiftJudgement',
+      _irimsbbb.SyncOfflineResult => 'SyncOfflineResult',
+      _ixhibl8j.SyncedMutation => 'SyncedMutation',
       _i6xfzno2.TillException => 'TillException',
       _i1nd03fb.TodayTally => 'TodayTally',
       _ => null,
@@ -768,16 +918,28 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'Membership';
       case _i5o1iqnh.MembershipRole():
         return 'MembershipRole';
+      case _idd7hlek.OfflineDepositPayload():
+        return 'OfflineDepositPayload';
       case _itaa86xl.Organization():
         return 'Organization';
       case _itkv9ghh.PaymentMethod():
         return 'PaymentMethod';
       case _iz3zju01.Room():
         return 'Room';
+      case _ic9hnfei.RoomRecommendation():
+        return 'RoomRecommendation';
       case _i9ebolaq.RoomStatus():
         return 'RoomStatus';
       case _iwm07xqw.ShiftClose():
         return 'ShiftClose';
+      case _ifz52290.ShiftCloseJob():
+        return 'ShiftCloseJob';
+      case _ikv292jv.ShiftJudgement():
+        return 'ShiftJudgement';
+      case _irimsbbb.SyncOfflineResult():
+        return 'SyncOfflineResult';
+      case _ixhibl8j.SyncedMutation():
+        return 'SyncedMutation';
       case _i6xfzno2.TillException():
         return 'TillException';
       case _i1nd03fb.TodayTally():
@@ -826,6 +988,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'MembershipRole') {
       return deserialize<_i5o1iqnh.MembershipRole>(data['data']);
     }
+    if (dataClassName == 'OfflineDepositPayload') {
+      return deserialize<_idd7hlek.OfflineDepositPayload>(data['data']);
+    }
     if (dataClassName == 'Organization') {
       return deserialize<_itaa86xl.Organization>(data['data']);
     }
@@ -835,11 +1000,26 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'Room') {
       return deserialize<_iz3zju01.Room>(data['data']);
     }
+    if (dataClassName == 'RoomRecommendation') {
+      return deserialize<_ic9hnfei.RoomRecommendation>(data['data']);
+    }
     if (dataClassName == 'RoomStatus') {
       return deserialize<_i9ebolaq.RoomStatus>(data['data']);
     }
     if (dataClassName == 'ShiftClose') {
       return deserialize<_iwm07xqw.ShiftClose>(data['data']);
+    }
+    if (dataClassName == 'ShiftCloseJob') {
+      return deserialize<_ifz52290.ShiftCloseJob>(data['data']);
+    }
+    if (dataClassName == 'ShiftJudgement') {
+      return deserialize<_ikv292jv.ShiftJudgement>(data['data']);
+    }
+    if (dataClassName == 'SyncOfflineResult') {
+      return deserialize<_irimsbbb.SyncOfflineResult>(data['data']);
+    }
+    if (dataClassName == 'SyncedMutation') {
+      return deserialize<_ixhibl8j.SyncedMutation>(data['data']);
     }
     if (dataClassName == 'TillException') {
       return deserialize<_i6xfzno2.TillException>(data['data']);
@@ -900,6 +1080,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _iz3zju01.Room.t;
       case _iwm07xqw.ShiftClose:
         return _iwm07xqw.ShiftClose.t;
+      case _ixhibl8j.SyncedMutation:
+        return _ixhibl8j.SyncedMutation.t;
     }
     return null;
   }

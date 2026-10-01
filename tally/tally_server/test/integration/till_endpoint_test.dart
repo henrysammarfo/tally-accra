@@ -113,5 +113,81 @@ void main() {
       expect(freed.status, RoomStatus.available);
       expect(freed.guestName, isNull);
     });
+
+    test('syncOfflineDeposits is idempotent on clientMutationId', () async {
+      await bootstrap(userA, 'osu-sync');
+
+      final payload = OfflineDepositPayload(
+        guestName: 'Ama Serwaa',
+        guestPhone: '+233246118042',
+        roomNumber: '103',
+        nights: 1,
+        amount: 490,
+        currency: CurrencyCode.ghs,
+        method: PaymentMethod.cashTill,
+        clientMutationId: 'off-test-103-ama',
+        capturedAt: DateTime.now().toUtc(),
+      );
+
+      final first = await endpoints.till.syncOfflineDeposits(
+        authed(userA),
+        payloads: [payload],
+      );
+      expect(first.accepted.length, 1);
+      expect(first.skippedMutationIds, isEmpty);
+      expect(first.tally.totalGhs, 490);
+      expect(
+        first.tally.rooms.firstWhere((r) => r.number == '103').status,
+        RoomStatus.locked,
+      );
+
+      final second = await endpoints.till.syncOfflineDeposits(
+        authed(userA),
+        payloads: [payload],
+      );
+      expect(second.accepted, isEmpty);
+      expect(second.skippedMutationIds, ['off-test-103-ama']);
+      expect(second.tally.totalGhs, 490);
+    });
+
+    test('recommendRoom fails closed without Jev key', () async {
+      await bootstrap(userA, 'osu-jev-room');
+
+      await expectLater(
+        () => endpoints.till.recommendRoom(
+          authed(userA),
+          guestHint: '',
+          nights: 1,
+        ),
+        throwsA(
+          predicate(
+            (e) => e is TillException && e.code == 'jev_unconfigured',
+          ),
+        ),
+      );
+    });
+
+    test('judgeShift fails closed without Jev key', () async {
+      await bootstrap(userA, 'osu-jev-shift');
+
+      await expectLater(
+        () => endpoints.till.judgeShift(authed(userA)),
+        throwsA(
+          predicate(
+            (e) => e is TillException && e.code == 'jev_unconfigured',
+          ),
+        ),
+      );
+    });
+
+    test('scheduleShiftClose returns future-call identifier', () async {
+      await bootstrap(userA, 'osu-future');
+      final id = await endpoints.till.scheduleShiftClose(
+        authed(userA),
+        delaySeconds: 30,
+        notes: 'test auto-close',
+      );
+      expect(id, contains('shift-close-'));
+    });
   });
 }

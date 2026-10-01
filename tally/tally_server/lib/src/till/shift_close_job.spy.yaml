@@ -1,0 +1,4 @@
+class: ShiftCloseJob
+fields:
+  organizationId: UuidValue
+  notes: String

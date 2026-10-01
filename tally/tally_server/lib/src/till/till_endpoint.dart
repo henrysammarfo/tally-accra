@@ -2,15 +2,20 @@ import 'dart:async';
 
 import 'package:serverpod/serverpod.dart';
 
+import '../generated/future_calls.dart';
 import '../generated/protocol.dart';
+import 'jev_service.dart';
 import 'tenant_context.dart';
 
-/// Spine till endpoints: createDeposit · assignNight · listToday.
+/// Spine till endpoints: createDeposit · assignNight · listToday ·
+/// syncOfflineDeposits · recommendRoom · judgeShift · scheduleShiftClose.
 class TillEndpoint extends Endpoint {
   @override
   bool get requireLogin => true;
 
-  static final _phonePattern = RegExp(r'^\+233\s?\d{2}\s?\d{3}\s?\d{4}$|^\+233\d{9}$|^0\d{9}$');
+  static final _phonePattern = RegExp(
+    r'^\+233\s?\d{2}\s?\d{3}\s?\d{4}$|^\+233\d{9}$|^0\d{9}$',
+  );
 
   /// Take deposit, lock the room night, append audit, broadcast today's tally.
   Future<Deposit> createDeposit(
@@ -24,95 +29,254 @@ class TillEndpoint extends Endpoint {
     required PaymentMethod method,
   }) async {
     final tenant = await requireTenant(session);
-    await _ensureShiftOpen(session, tenant.organizationId);
-
-    final name = guestName.trim();
-    final phone = guestPhone.trim();
-    if (name.isEmpty || name.length > 120) {
-      throw TillException(
-        message: 'Guest name must be 1–120 characters.',
-        code: 'invalid_guest',
-      );
-    }
-    if (!_phonePattern.hasMatch(phone)) {
-      throw TillException(
-        message: 'Use a Ghana phone (+233… or 0xxxxxxxxx).',
-        code: 'invalid_phone',
-      );
-    }
-    if (nights < 1 || nights > 30) {
-      throw TillException(
-        message: 'Nights must be between 1 and 30.',
-        code: 'invalid_nights',
-      );
-    }
-    if (!amount.isFinite || amount <= 0 || amount > 1000000) {
-      throw TillException(
-        message: 'Deposit amount must be a positive amount.',
-        code: 'invalid_amount',
-      );
-    }
-
-    final room = await Room.db.findFirstRow(
+    return _createDepositForTenant(
       session,
-      where: (t) =>
-          t.organizationId.equals(tenant.organizationId) &
-          t.number.equals(roomNumber.trim()),
+      tenant: tenant,
+      guestName: guestName,
+      guestPhone: guestPhone,
+      roomNumber: roomNumber,
+      nights: nights,
+      amount: amount,
+      currency: currency,
+      method: method,
+      clientMutationId: null,
+      capturedAt: null,
     );
-    if (room == null) {
-      throw TillException(
-        message: 'Room $roomNumber not found for this guest-house.',
-        code: 'room_missing',
+  }
+
+  /// Replay offline desk deposits with idempotent [clientMutationId]s.
+  Future<SyncOfflineResult> syncOfflineDeposits(
+    Session session, {
+    required List<OfflineDepositPayload> payloads,
+  }) async {
+    final tenant = await requireTenant(session);
+    if (payloads.isEmpty) {
+      final tally = await _buildTodayTally(session, tenant.organizationId);
+      return SyncOfflineResult(
+        accepted: [],
+        skippedMutationIds: [],
+        tally: tally,
       );
     }
-    if (room.status == RoomStatus.occupied || room.status == RoomStatus.locked) {
+    if (payloads.length > 40) {
       throw TillException(
-        message: 'Room ${room.number} is already ${room.status.name}.',
-        code: 'room_busy',
+        message: 'Sync at most 40 offline deposits per batch.',
+        code: 'sync_batch_too_large',
       );
     }
 
-    final receiptCode =
-        'TL-${DateTime.now().toUtc().millisecondsSinceEpoch}-${room.number}';
+    final accepted = <Deposit>[];
+    final skipped = <String>[];
 
-    final deposit = await Deposit.db.insertRow(
-      session,
-      Deposit(
-        organizationId: tenant.organizationId,
-        roomId: room.id!,
-        guestName: name,
-        guestPhone: phone,
-        nights: nights,
-        amount: amount,
-        currency: currency,
-        method: method,
-        receptionistName: tenant.membership.displayName,
-        receiptCode: receiptCode,
-      ),
-    );
+    for (final payload in payloads) {
+      final mutationId = payload.clientMutationId.trim();
+      if (mutationId.isEmpty || mutationId.length > 120) {
+        throw TillException(
+          message: 'Each offline deposit needs a clientMutationId (1–120 chars).',
+          code: 'invalid_mutation_id',
+        );
+      }
 
-    room.status = RoomStatus.locked;
-    room.guestName = name;
-    room.depositAmount = amount;
-    room.checkInAt = DateTime.now().toUtc();
-    room.nights = nights;
-    await Room.db.updateRow(session, room);
+      final existing = await SyncedMutation.db.findFirstRow(
+        session,
+        where: (t) =>
+            t.organizationId.equals(tenant.organizationId) &
+            t.clientMutationId.equals(mutationId),
+      );
+      if (existing != null) {
+        skipped.add(mutationId);
+        continue;
+      }
 
-    await appendAudit(
-      session,
-      organizationId: tenant.organizationId,
-      authUserId: tenant.authUserId,
-      action: 'deposit.create',
-      detail:
-          'Deposit $receiptCode room ${room.number} amount $amount ${currency.name} via ${method.name}',
-    );
+      final deposit = await _createDepositForTenant(
+        session,
+        tenant: tenant,
+        guestName: payload.guestName,
+        guestPhone: payload.guestPhone,
+        roomNumber: payload.roomNumber,
+        nights: payload.nights,
+        amount: payload.amount,
+        currency: payload.currency,
+        method: payload.method,
+        clientMutationId: mutationId,
+        capturedAt: payload.capturedAt,
+      );
+      accepted.add(deposit);
+    }
 
     final tally = await _buildTodayTally(session, tenant.organizationId);
     unawaited(
       session.messages.postMessage(tallyChannel(tenant.organizationId), tally),
     );
 
-    return deposit;
+    await appendAudit(
+      session,
+      organizationId: tenant.organizationId,
+      authUserId: tenant.authUserId,
+      action: 'deposit.sync_offline',
+      detail:
+          'Synced ${accepted.length} offline deposit(s), skipped ${skipped.length}',
+    );
+
+    return SyncOfflineResult(
+      accepted: accepted,
+      skippedMutationIds: skipped,
+      tally: tally,
+    );
+  }
+
+  /// Jev `choice`: pick the best open room for a walk-in.
+  Future<RoomRecommendation> recommendRoom(
+    Session session, {
+    String guestHint = '',
+    int nights = 1,
+  }) async {
+    final tenant = await requireTenant(session);
+    final jev = JevService.fromSession(session);
+    if (jev == null) {
+      throw TillException(
+        message:
+            'Jev is not configured. Set typesafeAPIKey / TYPESAFE_API_KEY / JEV_API_KEY.',
+        code: 'jev_unconfigured',
+      );
+    }
+
+    try {
+      final rooms = await Room.db.find(
+        session,
+        where: (t) => t.organizationId.equals(tenant.organizationId),
+        orderBy: (t) => t.number,
+      );
+      final open = rooms
+          .where(
+            (r) =>
+                r.status == RoomStatus.available ||
+                r.status == RoomStatus.cleaning,
+          )
+          .toList();
+
+      final recommendation = await jev.recommendRoom(
+        openRooms: open,
+        guestHint: guestHint,
+        nights: nights.clamp(1, 30),
+      );
+
+      await appendAudit(
+        session,
+        organizationId: tenant.organizationId,
+        authUserId: tenant.authUserId,
+        action: 'jev.recommend_room',
+        detail:
+            'Jev picked ${recommendation.roomNumber} '
+            'p=${recommendation.probability.toStringAsFixed(3)}',
+      );
+
+      return recommendation;
+    } finally {
+      jev.close();
+    }
+  }
+
+  /// Jev `noul`: is this shift healthy to close?
+  Future<ShiftJudgement> judgeShift(Session session) async {
+    final tenant = await requireTenant(session);
+    final jev = JevService.fromSession(session);
+    if (jev == null) {
+      throw TillException(
+        message:
+            'Jev is not configured. Set typesafeAPIKey / TYPESAFE_API_KEY / JEV_API_KEY.',
+        code: 'jev_unconfigured',
+      );
+    }
+
+    try {
+      final tally = await _buildTodayTally(session, tenant.organizationId);
+      final judgement = await jev.judgeShift(
+        expectedTotal: tally.totalGhs,
+        depositCount: tally.deposits.length,
+        occupiedCount: tally.occupiedCount,
+        roomCount: tally.roomCount,
+        shiftClosed: tally.shiftClosed,
+      );
+
+      await appendAudit(
+        session,
+        organizationId: tenant.organizationId,
+        authUserId: tenant.authUserId,
+        action: 'jev.judge_shift',
+        detail:
+            'healthy=${judgement.healthyProbability.toStringAsFixed(3)} '
+            'deposits=${judgement.depositCount}',
+      );
+
+      return judgement;
+    } finally {
+      jev.close();
+    }
+  }
+
+  /// Schedule a Serverpod future call to auto-close the shift.
+  Future<String> scheduleShiftClose(
+    Session session, {
+    int delaySeconds = 30,
+    String notes = 'Auto-closed by scheduled future call.',
+  }) async {
+    final tenant = await requireTenant(session);
+    if (tenant.membership.role == MembershipRole.receptionist) {
+      throw TillException(
+        message: 'Only managers or owners can schedule shift close.',
+        code: 'forbidden',
+      );
+    }
+    if (delaySeconds < 5 || delaySeconds > 86400) {
+      throw TillException(
+        message: 'delaySeconds must be between 5 and 86400.',
+        code: 'invalid_delay',
+      );
+    }
+
+    final identifier = 'shift-close-${tenant.organizationId.uuid}';
+    final job = ShiftCloseJob(
+      organizationId: tenant.organizationId,
+      notes: notes.trim().isEmpty
+          ? 'Auto-closed by scheduled future call.'
+          : notes.trim(),
+    );
+
+    // Wired after `serverpod generate` produces FutureCalls (see _scheduleAutoClose).
+    await _scheduleAutoClose(
+      session,
+      identifier: identifier,
+      delaySeconds: delaySeconds,
+      job: job,
+    );
+
+    await appendAudit(
+      session,
+      organizationId: tenant.organizationId,
+      authUserId: tenant.authUserId,
+      action: 'shift.schedule_close',
+      detail: 'Scheduled auto-close in ${delaySeconds}s id=$identifier',
+    );
+
+    return identifier;
+  }
+
+  /// Schedules [ShiftCloseFutureCall.autoClose] via generated FutureCalls.
+  Future<void> _scheduleAutoClose(
+    Session session, {
+    required String identifier,
+    required int delaySeconds,
+    required ShiftCloseJob job,
+  }) async {
+    await session.serverpod.futureCalls.cancel(identifier);
+    await session.serverpod.futureCalls
+        .callWithDelay(
+          Duration(seconds: delaySeconds),
+          identifier: identifier,
+        )
+        .shiftClose
+        .autoClose(job);
   }
 
   /// Lock or free a room night for the caller's organization.
@@ -272,6 +436,126 @@ class TillEndpoint extends Endpoint {
       session.messages.postMessage(tallyChannel(tenant.organizationId), next),
     );
     return shift;
+  }
+
+  Future<Deposit> _createDepositForTenant(
+    Session session, {
+    required TenantContext tenant,
+    required String guestName,
+    required String guestPhone,
+    required String roomNumber,
+    required int nights,
+    required double amount,
+    required CurrencyCode currency,
+    required PaymentMethod method,
+    required String? clientMutationId,
+    required DateTime? capturedAt,
+  }) async {
+    await _ensureShiftOpen(session, tenant.organizationId);
+
+    final name = guestName.trim();
+    final phone = guestPhone.trim();
+    if (name.isEmpty || name.length > 120) {
+      throw TillException(
+        message: 'Guest name must be 1–120 characters.',
+        code: 'invalid_guest',
+      );
+    }
+    if (!_phonePattern.hasMatch(phone)) {
+      throw TillException(
+        message: 'Use a Ghana phone (+233… or 0xxxxxxxxx).',
+        code: 'invalid_phone',
+      );
+    }
+    if (nights < 1 || nights > 30) {
+      throw TillException(
+        message: 'Nights must be between 1 and 30.',
+        code: 'invalid_nights',
+      );
+    }
+    if (!amount.isFinite || amount <= 0 || amount > 1000000) {
+      throw TillException(
+        message: 'Deposit amount must be a positive amount.',
+        code: 'invalid_amount',
+      );
+    }
+
+    final room = await Room.db.findFirstRow(
+      session,
+      where: (t) =>
+          t.organizationId.equals(tenant.organizationId) &
+          t.number.equals(roomNumber.trim()),
+    );
+    if (room == null) {
+      throw TillException(
+        message: 'Room $roomNumber not found for this guest-house.',
+        code: 'room_missing',
+      );
+    }
+    if (room.status == RoomStatus.occupied || room.status == RoomStatus.locked) {
+      throw TillException(
+        message: 'Room ${room.number} is already ${room.status.name}.',
+        code: 'room_busy',
+      );
+    }
+
+    final stamp = (capturedAt ?? DateTime.now().toUtc()).millisecondsSinceEpoch;
+    final receiptCode = 'TL-$stamp-${room.number}';
+
+    final deposit = await Deposit.db.insertRow(
+      session,
+      Deposit(
+        organizationId: tenant.organizationId,
+        roomId: room.id!,
+        guestName: name,
+        guestPhone: phone,
+        nights: nights,
+        amount: amount,
+        currency: currency,
+        method: method,
+        receptionistName: tenant.membership.displayName,
+        receiptCode: receiptCode,
+        createdAt: capturedAt?.toUtc() ?? DateTime.now().toUtc(),
+      ),
+    );
+
+    room.status = RoomStatus.locked;
+    room.guestName = name;
+    room.depositAmount = amount;
+    room.checkInAt = capturedAt?.toUtc() ?? DateTime.now().toUtc();
+    room.nights = nights;
+    await Room.db.updateRow(session, room);
+
+    if (clientMutationId != null) {
+      await SyncedMutation.db.insertRow(
+        session,
+        SyncedMutation(
+          organizationId: tenant.organizationId,
+          clientMutationId: clientMutationId,
+          depositId: deposit.id,
+        ),
+      );
+    }
+
+    await appendAudit(
+      session,
+      organizationId: tenant.organizationId,
+      authUserId: tenant.authUserId,
+      action: clientMutationId == null ? 'deposit.create' : 'deposit.create_offline',
+      detail:
+          'Deposit $receiptCode room ${room.number} amount $amount ${currency.name} via ${method.name}'
+          '${clientMutationId == null ? '' : ' mutation=$clientMutationId'}',
+    );
+
+    // Skip broadcast when batching offline sync — caller posts once.
+    if (clientMutationId == null) {
+      final tally = await _buildTodayTally(session, tenant.organizationId);
+      unawaited(
+        session.messages.postMessage(tallyChannel(tenant.organizationId), tally),
+      );
+    }
+
+    return deposit;
   }
 
   Future<void> _ensureShiftOpen(Session session, UuidValue organizationId) async {

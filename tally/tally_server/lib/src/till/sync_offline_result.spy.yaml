@@ -1,0 +1,5 @@
+class: SyncOfflineResult
+fields:
+  accepted: List<Deposit>
+  skippedMutationIds: List<String>
+  tally: TodayTally

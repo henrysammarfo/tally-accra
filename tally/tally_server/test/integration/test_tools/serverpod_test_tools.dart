@@ -17,16 +17,27 @@ import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
 import 'package:serverpod_test/serverpod_test.dart' as _ist;
+import 'package:tally_server/src/generated/future_calls.dart' as _iuqh5208;
 import 'package:tally_server/src/generated/greetings/greeting.dart'
     as _i2ej5bf2;
 import 'package:tally_server/src/generated/till/currency_code.dart'
     as _iumn2k98;
 import 'package:tally_server/src/generated/till/deposit.dart' as _i2q6zpb5;
+import 'package:tally_server/src/generated/till/offline_deposit_payload.dart'
+    as _i2ijly4n;
 import 'package:tally_server/src/generated/till/organization.dart' as _inibcn21;
 import 'package:tally_server/src/generated/till/payment_method.dart'
     as _iflrub3c;
 import 'package:tally_server/src/generated/till/room.dart' as _iwjebntd;
+import 'package:tally_server/src/generated/till/room_recommendation.dart'
+    as _i4y5h663;
 import 'package:tally_server/src/generated/till/shift_close.dart' as _ikgvo6va;
+import 'package:tally_server/src/generated/till/shift_close_job.dart'
+    as _idh5570c;
+import 'package:tally_server/src/generated/till/shift_judgement.dart'
+    as _iw0r18gp;
+import 'package:tally_server/src/generated/till/sync_offline_result.dart'
+    as _i2y4ggje;
 import 'package:tally_server/src/generated/till/today_tally.dart' as _irqckbsk;
 import 'package:tally_server/src/generated/protocol.dart';
 import 'package:tally_server/src/generated/endpoints.dart';
@@ -161,6 +172,8 @@ void withServerpod(
 }
 
 class TestEndpoints {
+  late final futureCalls = _FutureCalls();
+
   late final _EmailIdpEndpoint emailIdp;
 
   late final _JwtRefreshEndpoint jwtRefresh;
@@ -206,6 +219,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
   }
+}
+
+class _FutureCalls {
+  late final shiftClose = _ShiftCloseFutureCall();
 }
 
 class _EmailIdpEndpoint {
@@ -747,6 +764,137 @@ class _TillEndpoint {
     });
   }
 
+  _ida.Future<_i2y4ggje.SyncOfflineResult> syncOfflineDeposits(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required List<_i2ijly4n.OfflineDepositPayload> payloads,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'till',
+            method: 'syncOfflineDeposits',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'till',
+          methodName: 'syncOfflineDeposits',
+          parameters: _ist.testObjectToJson({'payloads': payloads}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_i2y4ggje.SyncOfflineResult>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_i4y5h663.RoomRecommendation> recommendRoom(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required String guestHint,
+    required int nights,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'till',
+            method: 'recommendRoom',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'till',
+          methodName: 'recommendRoom',
+          parameters: _ist.testObjectToJson({
+            'guestHint': guestHint,
+            'nights': nights,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_i4y5h663.RoomRecommendation>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_iw0r18gp.ShiftJudgement> judgeShift(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'till',
+            method: 'judgeShift',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'till',
+          methodName: 'judgeShift',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_iw0r18gp.ShiftJudgement>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<String> scheduleShiftClose(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required int delaySeconds,
+    required String notes,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'till',
+            method: 'scheduleShiftClose',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'till',
+          methodName: 'scheduleShiftClose',
+          parameters: _ist.testObjectToJson({
+            'delaySeconds': delaySeconds,
+            'notes': notes,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _ida.Future<_iwjebntd.Room> assignNight(
     _ist.TestSessionBuilder sessionBuilder, {
     required String roomNumber,
@@ -907,5 +1055,23 @@ class _TillEndpoint {
         await _localUniqueSession.close();
       }
     });
+  }
+}
+
+class _ShiftCloseFutureCall {
+  Future<void> autoClose(
+    _ist.TestSessionBuilder sessionBuilder,
+    _idh5570c.ShiftCloseJob job,
+  ) async {
+    var _localUniqueSession =
+        (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild();
+    try {
+      await _iuqh5208.ShiftCloseAutoCloseFutureCall().invoke(
+        _localUniqueSession,
+        job,
+      );
+    } finally {
+      await _localUniqueSession.close();
+    }
   }
 }

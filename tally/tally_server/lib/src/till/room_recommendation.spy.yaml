@@ -1,0 +1,6 @@
+class: RoomRecommendation
+fields:
+  roomNumber: String
+  probability: double
+  rationale: String
+  allScores: Map<String, double>

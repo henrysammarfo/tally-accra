@@ -1,0 +1,6 @@
+class: ShiftJudgement
+fields:
+  healthyProbability: double
+  recommendation: String
+  expectedTotal: double
+  depositCount: int

@@ -17,8 +17,15 @@ description: Build and ship the TALLY Flutter+Serverpod spine (createDeposit, as
 
 ## Spine checklist
 
-- [ ] Organization + Membership
-- [ ] createDeposit / assignNight / listToday
-- [ ] Streaming or live tally refresh
-- [ ] Audit events
-- [ ] Auth required
+- [x] Organization + Membership
+- [x] createDeposit / assignNight / listToday / watchToday
+- [x] Streaming live tally (MessageCentral)
+- [x] Offline queue → syncOfflineDeposits (idempotent)
+- [x] Jev recommendRoom (choice) + judgeShift (noul) — fail closed
+- [x] Future call scheduleShiftClose
+- [x] Audit events
+- [x] Auth required
+
+## KEEPR notes
+
+Read `docs/memory/KEEPR_SCORE_SPEC.md`. Pin `jev_dart: 0.1.1` (newer crimson breaks Flutter analyzer pin).

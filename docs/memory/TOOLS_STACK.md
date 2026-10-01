@@ -8,7 +8,7 @@
 | Track B marketing             | Vercel via Lovable                                  | Do not bind to VIGIL `cyber-ronin-nexus` |
 | GCP                           | Backup only if Serverpod Cloud blocked              | Not Railway                              |
 
-## LLM
+## LLM / decisions
 
 | Item          | Value                                                      |
 | ------------- | ---------------------------------------------------------- |
@@ -17,6 +17,7 @@
 | Cloud egress  | Tor SOCKS `socks5h://127.0.0.1:9050` or clean-egress relay |
 | Headers       | Stainless / QwenCode-style (see AGENTROUTER_SETUP.md)      |
 | OpenAI direct | Not used (no OpenAI key)                                   |
+| Jev           | TypeSafe System One via `jev_dart` 0.1.1 → `api.typesafe.ai` (`choice` / `noul`) |
 
 ## Fact-check
 
@@ -35,6 +36,7 @@ AGENTROUTER_TOR_SOCKS=socks5h://127.0.0.1:9050
 TALLY_LLM_MODEL=deepseek-v4-flash
 TALLY_LLM_RELAY_URL   # optional CF Worker
 TALLY_LLM_RELAY_KEY
+TYPESAFE_API_KEY      # or JEV_API_KEY; Serverpod password: typesafeAPIKey
 TINYFISH_API_KEY
 TAVILY_API_KEY
 TALLY_FLUTTER_WEB_URL # public Track A URL for marketing CTAs

@@ -20,3 +20,11 @@
 - Verdict: TALLY CRUD till is useful but weak for 25% Serverpod-stack score.
 - Recommended pivot: **KEEPR / TALLY Sync** — offline deposit+lock → CRDT sync → live owner stream + future-call shift close.
 - Full write-up: `docs/memory/SERVERPOD_TRUE_COLORS_RESEARCH.md`.
+
+## 2026-10-01 — KEEPR pivot shipped (max all axes; judges decide)
+
+- Locked `docs/memory/KEEPR_SCORE_SPEC.md` — leave prize to judges, force yes on every axis.
+- Server: `syncOfflineDeposits` (idempotent `SyncedMutation`), Jev `recommendRoom`/`judgeShift` via `jev_dart` 0.1.1, `ShiftCloseFutureCall` + `scheduleShiftClose`.
+- Flutter: offline banner, queue, Sync, Jev pick room, judge shift, schedule auto-close.
+- `jev_dart` pinned **0.1.1** (0.1.2+ pulls crimson/analyzer conflict with Flutter).
+- Fail closed without `TYPESAFE_API_KEY` / `typesafeAPIKey`.

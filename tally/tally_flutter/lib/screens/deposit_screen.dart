@@ -2,11 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:tally_client/tally_client.dart';
 
 import '../client.dart';
+import '../offline_queue.dart';
 
 class DepositScreen extends StatefulWidget {
-  const DepositScreen({super.key, required this.rooms, required this.onDone});
+  const DepositScreen({
+    super.key,
+    required this.rooms,
+    required this.offlineMode,
+    required this.queue,
+    required this.onQueued,
+    required this.onDone,
+  });
 
   final List<Room> rooms;
+  final bool offlineMode;
+  final OfflineDepositQueue queue;
+  final VoidCallback onQueued;
   final Future<void> Function() onDone;
 
   @override
@@ -23,7 +34,9 @@ class _DepositScreenState extends State<DepositScreen> {
   CurrencyCode _currency = CurrencyCode.ghs;
   String? _error;
   String? _receipt;
+  String? _jevHint;
   bool _busy = false;
+  bool _jevBusy = false;
 
   @override
   void dispose() {
@@ -33,13 +46,43 @@ class _DepositScreenState extends State<DepositScreen> {
     super.dispose();
   }
 
-  List<Room> get _openRooms => widget.rooms
-      .where(
-        (r) =>
-            r.status == RoomStatus.available ||
-            r.status == RoomStatus.cleaning,
-      )
-      .toList();
+  List<Room> get _openRooms {
+    final lockedLocally = widget.queue.pending.map((p) => p.roomNumber).toSet();
+    return widget.rooms
+        .where(
+          (r) =>
+              (r.status == RoomStatus.available ||
+                  r.status == RoomStatus.cleaning) &&
+              !lockedLocally.contains(r.number),
+        )
+        .toList();
+  }
+
+  Future<void> _jevPickRoom() async {
+    setState(() {
+      _jevBusy = true;
+      _error = null;
+      _jevHint = null;
+    });
+    try {
+      final rec = await client.till.recommendRoom(
+        guestHint: _guest.text,
+        nights: _nights,
+      );
+      if (!mounted) return;
+      setState(() {
+        _room = rec.roomNumber;
+        _jevHint =
+            'Jev → ${rec.roomNumber} (${(rec.probability * 100).toStringAsFixed(0)}%) · ${rec.rationale}';
+      });
+    } on TillException catch (e) {
+      setState(() => _error = e.message);
+    } catch (e) {
+      setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _jevBusy = false);
+    }
+  }
 
   Future<void> _submit() async {
     final room = _room;
@@ -54,17 +97,35 @@ class _DepositScreenState extends State<DepositScreen> {
       _receipt = null;
     });
     try {
-      final deposit = await client.till.createDeposit(
-        guestName: _guest.text,
-        guestPhone: _phone.text,
-        roomNumber: room,
-        nights: _nights,
-        amount: amount,
-        currency: _currency,
-        method: _method,
-      );
-      setState(() => _receipt = deposit.receiptCode);
-      await widget.onDone();
+      if (widget.offlineMode) {
+        widget.queue.enqueue(
+          OfflineDepositPayload(
+            guestName: _guest.text.trim(),
+            guestPhone: _phone.text.trim(),
+            roomNumber: room,
+            nights: _nights,
+            amount: amount,
+            currency: _currency,
+            method: _method,
+            clientMutationId: OfflineDepositQueue.newMutationId(),
+            capturedAt: DateTime.now().toUtc(),
+          ),
+        );
+        setState(() => _receipt = 'QUEUED offline · room $room');
+        widget.onQueued();
+      } else {
+        final deposit = await client.till.createDeposit(
+          guestName: _guest.text,
+          guestPhone: _phone.text,
+          roomNumber: room,
+          nights: _nights,
+          amount: amount,
+          currency: _currency,
+          method: _method,
+        );
+        setState(() => _receipt = deposit.receiptCode);
+        await widget.onDone();
+      }
     } on TillException catch (e) {
       setState(() => _error = e.message);
     } catch (e) {
@@ -81,13 +142,17 @@ class _DepositScreenState extends State<DepositScreen> {
       padding: const EdgeInsets.all(20),
       children: [
         Text(
-          '8-second deposit',
+          widget.offlineMode ? 'Offline deposit (queued)' : '8-second deposit',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
         ),
         const SizedBox(height: 4),
-        const Text('Name. Room. Money. Lock.'),
+        Text(
+          widget.offlineMode
+              ? 'No network. Queue locally — Sync when back online.'
+              : 'Name. Room. Money. Lock.',
+        ),
         const SizedBox(height: 20),
         TextField(
           controller: _guest,
@@ -106,23 +171,48 @@ class _DepositScreenState extends State<DepositScreen> {
           keyboardType: TextInputType.phone,
         ),
         const SizedBox(height: 12),
-        DropdownButtonFormField<String>(
-          // ignore: deprecated_member_use
-          value: _room,
-          decoration: const InputDecoration(
-            labelText: 'Room',
-            border: OutlineInputBorder(),
-          ),
-          items: rooms
-              .map(
-                (r) => DropdownMenuItem(
-                  value: r.number,
-                  child: Text('${r.number} · ${r.type} · GH₵${r.rateGhs.toStringAsFixed(0)}'),
+        Row(
+          children: [
+            Expanded(
+              child: DropdownButtonFormField<String>(
+                // ignore: deprecated_member_use
+                value: _room,
+                decoration: const InputDecoration(
+                  labelText: 'Room',
+                  border: OutlineInputBorder(),
                 ),
-              )
-              .toList(),
-          onChanged: (v) => setState(() => _room = v),
+                items: rooms
+                    .map(
+                      (r) => DropdownMenuItem(
+                        value: r.number,
+                        child: Text(
+                          '${r.number} · ${r.type} · GH₵${r.rateGhs.toStringAsFixed(0)}',
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) => setState(() => _room = v),
+              ),
+            ),
+            const SizedBox(width: 8),
+            FilledButton.tonal(
+              onPressed: widget.offlineMode || _jevBusy || rooms.isEmpty
+                  ? null
+                  : _jevPickRoom,
+              child: Text(_jevBusy ? 'Jev…' : 'Jev pick'),
+            ),
+          ],
         ),
+        if (_jevHint != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _jevHint!,
+            style: const TextStyle(
+              color: Color(0xFF166534),
+              fontSize: 13,
+            ),
+          ),
+        ],
         const SizedBox(height: 12),
         Row(
           children: [
@@ -149,7 +239,9 @@ class _DepositScreenState extends State<DepositScreen> {
                   labelText: 'Deposit amount',
                   border: OutlineInputBorder(),
                 ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
               ),
             ),
           ],
@@ -176,7 +268,12 @@ class _DepositScreenState extends State<DepositScreen> {
             border: OutlineInputBorder(),
           ),
           items: CurrencyCode.values
-              .map((c) => DropdownMenuItem(value: c, child: Text(c.name.toUpperCase())))
+              .map(
+                (c) => DropdownMenuItem(
+                  value: c,
+                  child: Text(c.name.toUpperCase()),
+                ),
+              )
               .toList(),
           onChanged: (v) => setState(() => _currency = v ?? CurrencyCode.ghs),
         ),
@@ -187,7 +284,7 @@ class _DepositScreenState extends State<DepositScreen> {
         if (_receipt != null) ...[
           const SizedBox(height: 12),
           Text(
-            'Locked. Receipt $_receipt',
+            widget.offlineMode ? _receipt! : 'Locked. Receipt $_receipt',
             style: const TextStyle(
               color: Color(0xFF166534),
               fontWeight: FontWeight.w600,
@@ -197,7 +294,13 @@ class _DepositScreenState extends State<DepositScreen> {
         const SizedBox(height: 20),
         FilledButton(
           onPressed: _busy || rooms.isEmpty ? null : _submit,
-          child: Text(_busy ? 'Locking…' : 'Lock night & print receipt'),
+          child: Text(
+            _busy
+                ? (widget.offlineMode ? 'Queuing…' : 'Locking…')
+                : (widget.offlineMode
+                    ? 'Queue offline deposit'
+                    : 'Lock night & print receipt'),
+          ),
         ),
       ],
     );

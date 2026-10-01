@@ -15,8 +15,11 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
+import 'package:tally_server/src/generated/future_calls.dart' as _iuqh5208;
 import 'package:tally_server/src/generated/till/currency_code.dart'
     as _iumn2k98;
+import 'package:tally_server/src/generated/till/offline_deposit_payload.dart'
+    as _i2ijly4n;
 import 'package:tally_server/src/generated/till/payment_method.dart'
     as _iflrub3c;
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
@@ -25,6 +28,7 @@ import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../till/insight_endpoint.dart' as _i05x5dvo;
 import '../till/organization_endpoint.dart' as _icg6iw1v;
 import '../till/till_endpoint.dart' as _idnf239c;
+export 'future_calls.dart' show ServerpodFutureCallsGetter;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -437,6 +441,85 @@ class Endpoints extends _is.EndpointDispatch {
                     method: params['method'],
                   ),
         ),
+        'syncOfflineDeposits': _is.MethodConnector(
+          name: 'syncOfflineDeposits',
+          params: {
+            'payloads': _is.ParameterDescription(
+              name: 'payloads',
+              type: _is.getType<List<_i2ijly4n.OfflineDepositPayload>>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['till'] as _idnf239c.TillEndpoint)
+                  .syncOfflineDeposits(
+                    session,
+                    payloads: params['payloads'],
+                  ),
+        ),
+        'recommendRoom': _is.MethodConnector(
+          name: 'recommendRoom',
+          params: {
+            'guestHint': _is.ParameterDescription(
+              name: 'guestHint',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'nights': _is.ParameterDescription(
+              name: 'nights',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['till'] as _idnf239c.TillEndpoint).recommendRoom(
+                    session,
+                    guestHint: params['guestHint'],
+                    nights: params['nights'],
+                  ),
+        ),
+        'judgeShift': _is.MethodConnector(
+          name: 'judgeShift',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['till'] as _idnf239c.TillEndpoint)
+                  .judgeShift(session),
+        ),
+        'scheduleShiftClose': _is.MethodConnector(
+          name: 'scheduleShiftClose',
+          params: {
+            'delaySeconds': _is.ParameterDescription(
+              name: 'delaySeconds',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'notes': _is.ParameterDescription(
+              name: 'notes',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['till'] as _idnf239c.TillEndpoint)
+                  .scheduleShiftClose(
+                    session,
+                    delaySeconds: params['delaySeconds'],
+                    notes: params['notes'],
+                  ),
+        ),
         'assignNight': _is.MethodConnector(
           name: 'assignNight',
           params: {
@@ -527,5 +610,10 @@ class Endpoints extends _is.EndpointDispatch {
       ..initializeEndpoints(server);
     modules['serverpod_auth_core'] = _iacs.Endpoints()
       ..initializeEndpoints(server);
+  }
+
+  @override
+  _is.FutureCallDispatch? get futureCalls {
+    return _iuqh5208.FutureCalls();
   }
 }

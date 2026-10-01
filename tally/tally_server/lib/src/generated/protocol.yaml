@@ -18,6 +18,10 @@ organization:
   - myOrganization:
 till:
   - createDeposit:
+  - syncOfflineDeposits:
+  - recommendRoom:
+  - judgeShift:
+  - scheduleShiftClose:
   - assignNight:
   - listToday:
   - watchToday:

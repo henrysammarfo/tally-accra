@@ -9,6 +9,8 @@ environment:
 resolution: workspace
 
 dependencies:
+  # 0.1.2+ pulls crimson (analyzer ^6) which fights Flutter's matcher pin.
+  jev_dart: 0.1.1
   serverpod: 4.0.3
   serverpod_auth_idp_server: 4.0.3
   serverpod_cloud_storage: 4.0.3

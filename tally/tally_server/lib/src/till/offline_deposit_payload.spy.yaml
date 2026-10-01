@@ -1,0 +1,11 @@
+class: OfflineDepositPayload
+fields:
+  guestName: String
+  guestPhone: String
+  roomNumber: String
+  nights: int
+  amount: double
+  currency: CurrencyCode
+  method: PaymentMethod
+  clientMutationId: String
+  capturedAt: DateTime
