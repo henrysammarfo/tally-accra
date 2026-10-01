@@ -180,7 +180,7 @@ void main() {
       );
     });
 
-    test('scheduleShiftClose returns future-call identifier', () async {
+    test('scheduleShiftClose returns free_delay identifier on free plan', () async {
       await bootstrap(userA, 'osu-future');
       final id = await endpoints.till.scheduleShiftClose(
         authed(userA),
