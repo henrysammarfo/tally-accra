@@ -188,6 +188,7 @@ void main() {
         notes: 'test auto-close',
       );
       expect(id, contains('shift-close-'));
+      expect(id, contains('free_delay'));
     });
   });
 }

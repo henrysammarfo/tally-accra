@@ -3,55 +3,34 @@
 > Never paste live keys into git, PR bodies, or chat that will be committed.
 > Prefer: Cursor Cloud secrets / this VM env / Serverpod Cloud passwords / a one-line paste in a private agent follow-up that we set into env then rotate after the hackathon.
 
-## A. Jev (TypeSafe System One) — pick ONE path
+## A. Jev (TypeSafe System One) — free status first
 
-TypeSafe **direct console signup is closed** as of 2026-09-24 (TypeSafe on X / jevwiki). Existing TypeSafe accounts can still mint keys. Everyone else uses a gateway.
+**Verified 2026-10-01: there is no $0 public API for Jev right now.**
 
-### Path A1 — OpenRouter (recommended if no TypeSafe account)
+- Vercel AI Gateway free-tier catalog = models with `free` tag / $0 price. `typesafe-ai/jev` is **$0.042/1M input** and is **not** free-tier (needs purchased Gateway credits; card verification for free credits does not unlock Jev).
+- OpenRouter free models do **not** include Jev; empty balance → HTTP 402.
+- TypeSafe console signup closed; no published free API tier.
+- Cost of real Jev is tiny (~$0.00002/call on OpenRouter). See `docs/memory/FREE_PLAN.md`.
+
+### Path A1 — OpenRouter (cheapest real Jev — not free)
 
 1. Open https://openrouter.ai/settings/keys
-2. Create an API key (`sk-or-…`)
-3. Optional: confirm model https://openrouter.ai/typesafe (use `typesafe/jev-1.13`)
-4. Give the agent **one** of:
-   - Follow-up message: `OPENROUTER_API_KEY=sk-or-…` (we export in the VM + `scloud password set`)
-   - Or set yourself:
+2. Add ~$1 credits at https://openrouter.ai/credits (only if you can)
+3. Create key `sk-or-…` → paste `OPENROUTER_API_KEY=…` to the agent
+4. Model: `typesafe/jev-1.13`
 
-```bash
-export OPENROUTER_API_KEY=sk-or-...
-# optional pin:
-export TYPESAFE_BASE_URL=https://openrouter.ai/api
-export TYPESAFE_DEFAULT_MODEL=typesafe/jev-1.13
-```
+### Path A2 — Vercel AI Gateway (also not free for Jev)
 
-Smoke (from docs — Decisions API):
+Needs **purchased** AI Gateway credits for `typesafe-ai/jev`. Free monthly credit does **not** cover it. Only use if you already have Gateway credits.
 
-```bash
-curl https://openrouter.ai/api/alpha/decisions \
-  -H "Authorization: Bearer $OPENROUTER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"model":"typesafe/jev-1.13","state":{"ticket":"Room 103 walk-in, 1 night cash"},"questions":{"ok":{"type":"noul","instructions":"Is this a valid guest-house desk event?"}}}'
-```
+### Path A3 — Stay $0
 
-Billing: OpenRouter bills Jev on **input tokens**; output free. Cost appears in `usage.cost` on each response.
+Leave Jev fail-closed. Demo still wins on sync + streams + free delayed auto-close. Do **not** fake Jev.
 
-### Path A2 — Vercel AI Gateway (you already have Vercel)
+### Path A4 — Direct TypeSafe (only if you already have console access)
 
-1. Vercel dashboard → AI Gateway → create / copy `AI_GATEWAY_API_KEY`
-2. Docs: https://vercel.com/changelog/ai-gateway-now-supports-typesafe-clients-and-http-api-for-jev
-3. Give the agent: `AI_GATEWAY_API_KEY=…`
-
-```bash
-export AI_GATEWAY_API_KEY=...
-export TYPESAFE_BASE_URL=https://ai-gateway.vercel.sh/typesafe
-# model default in our server: typesafe-ai/jev
-```
-
-### Path A3 — Direct TypeSafe (only if you already have console access)
-
-1. https://console.typesafe.ai → log in (Google or email code)
-2. Keys: https://console.typesafe.ai/keys
-3. Give the agent: `TYPESAFE_API_KEY=…` (or `JEV_API_KEY=…`)
-4. Default host: `https://api.typesafe.ai` · model `jev-latest`
+1. https://console.typesafe.ai/keys
+2. `TYPESAFE_API_KEY=…`
 
 ### What our server accepts (order)
 

@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/future_calls.dart';
 import '../generated/protocol.dart';
 import 'jev_service.dart';
+import 'shift_close_future_call.dart';
 import 'tenant_context.dart';
 
 /// Spine till endpoints: createDeposit · assignNight · listToday ·
@@ -215,11 +217,12 @@ class TillEndpoint extends Endpoint {
     }
   }
 
-  /// Schedule a Serverpod future call to auto-close the shift.
+  /// Schedule auto-close. Free/Starter: in-process delay (FutureCalls disabled
+  /// on Serverpod Cloud Starter). Set `TALLY_USE_FUTURE_CALLS=1` on Growth/self-host.
   Future<String> scheduleShiftClose(
     Session session, {
     int delaySeconds = 30,
-    String notes = 'Auto-closed by scheduled future call.',
+    String notes = 'Auto-closed by scheduled shift close.',
   }) async {
     final tenant = await requireTenant(session);
     if (tenant.membership.role == MembershipRole.receptionist) {
@@ -239,12 +242,11 @@ class TillEndpoint extends Endpoint {
     final job = ShiftCloseJob(
       organizationId: tenant.organizationId,
       notes: notes.trim().isEmpty
-          ? 'Auto-closed by scheduled future call.'
+          ? 'Auto-closed by scheduled shift close.'
           : notes.trim(),
     );
 
-    // Wired after `serverpod generate` produces FutureCalls (see _scheduleAutoClose).
-    await _scheduleAutoClose(
+    final mode = await _scheduleAutoClose(
       session,
       identifier: identifier,
       delaySeconds: delaySeconds,
@@ -256,27 +258,55 @@ class TillEndpoint extends Endpoint {
       organizationId: tenant.organizationId,
       authUserId: tenant.authUserId,
       action: 'shift.schedule_close',
-      detail: 'Scheduled auto-close in ${delaySeconds}s id=$identifier',
+      detail:
+          'Scheduled auto-close in ${delaySeconds}s id=$identifier mode=$mode',
     );
 
-    return identifier;
+    return '$identifier:$mode';
   }
 
-  /// Schedules [ShiftCloseFutureCall.autoClose] via generated FutureCalls.
-  Future<void> _scheduleAutoClose(
+  /// Schedules auto-close via FutureCall (Growth) or free in-process delay (Starter).
+  Future<String> _scheduleAutoClose(
     Session session, {
     required String identifier,
     required int delaySeconds,
     required ShiftCloseJob job,
   }) async {
-    await session.serverpod.futureCalls.cancel(identifier);
-    await session.serverpod.futureCalls
-        .callWithDelay(
-          Duration(seconds: delaySeconds),
-          identifier: identifier,
-        )
-        .shiftClose
-        .autoClose(job);
+    final useFutureCalls =
+        Platform.environment['TALLY_USE_FUTURE_CALLS'] == '1';
+
+    if (useFutureCalls) {
+      await session.serverpod.futureCalls.cancel(identifier);
+      await session.serverpod.futureCalls
+          .callWithDelay(
+            Duration(seconds: delaySeconds),
+            identifier: identifier,
+          )
+          .shiftClose
+          .autoClose(job);
+      return 'future_call';
+    }
+
+    // Free / Starter path: FutureCalls are disabled on Cloud Starter.
+    // In-process delay works for the live demo; does not survive process restart.
+    final pod = session.serverpod;
+    unawaited(() async {
+      await Future<void>.delayed(Duration(seconds: delaySeconds));
+      final bg = await pod.createSession(enableLogging: true);
+      try {
+        await ShiftCloseFutureCall().autoClose(bg, job);
+      } catch (e, st) {
+        bg.log(
+          'Free-plan delayed shift close failed: $e',
+          level: LogLevel.error,
+          exception: e,
+          stackTrace: st,
+        );
+      } finally {
+        await bg.close();
+      }
+    }());
+    return 'free_delay';
   }
 
   /// Lock or free a room night for the caller's organization.

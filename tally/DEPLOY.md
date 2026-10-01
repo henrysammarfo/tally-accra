@@ -22,22 +22,28 @@ scloud password set TALLY_LLM_RELAY_URL
 
 ## Plan constraint (verified serverpod.dev/cloud)
 
-- **Starter ($5):** future calls **disabled** — sync/streams/Jev OK; `scheduleShiftClose` needs **Growth ($20)** or self-host.
-- S podlet published max ≈ 5K req/min (basic calls, no DB).
+- Use **Starter free trial** (1 month, no card) — locked free plan. See `docs/memory/FREE_PLAN.md`.
+- Starter **disables FutureCalls** → `scheduleShiftClose` uses in-process `free_delay` by default.
+- **Jev is not free** on Vercel AI Gateway free tier or OpenRouter free models. Need ~$1 OpenRouter credit for live Jev, or leave fail-closed.
 
 ## Keys for this agent
 
-Paste into a private follow-up (see `docs/memory/KEYS_SETUP.md`):
+Minimum for deploy:
+
+```
+SERVERPOD_CLOUD_TOKEN=...
+```
+
+Optional for **real** Jev (~$0.00002/call — not free, but cheapest):
 
 ```
 OPENROUTER_API_KEY=sk-or-...
-SERVERPOD_CLOUD_TOKEN=...
 ```
 
 ## Agent status (2026-10-01)
 
-- Local spine + Flutter UI + KEEPR sync/Jev/future-call: done
-- `scloud launch`: **blocked pending Henry's Cloud login / token**
-- Jev live: **blocked pending OpenRouter or TypeSafe or AI Gateway key**
+- Local spine + Flutter UI + KEEPR sync/Jev/free-delay close: done
+- `scloud launch`: **blocked pending Henry's Cloud login / token** (Starter trial)
+- Jev live: **not free** on gateways; needs tiny OpenRouter credit or stays fail-closed
 - AgentRouter Tor smoke on this VM: **passed** (`smoke_llm_tor_ok`)
 - CF Worker relay source: `tally/scripts/llm-relay-worker.js` (deploy when Cloud has no Tor)

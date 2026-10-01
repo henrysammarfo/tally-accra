@@ -158,12 +158,12 @@ class _DeskShellState extends State<DeskShell> {
     try {
       final id = await client.till.scheduleShiftClose(
         delaySeconds: 20,
-        notes: 'Demo auto-close via Serverpod future call.',
+        notes: 'Demo auto-close (free-plan delay).',
       );
       if (!mounted) return;
       setState(() {
         _statusBanner =
-            'Future call scheduled ($id) — shift auto-closes in ~20s.';
+            'Auto-close scheduled ($id) — shift closes in ~20s (free plan).';
       });
     } on TillException catch (e) {
       setState(() => _error = e.message);

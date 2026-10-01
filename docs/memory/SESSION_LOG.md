@@ -21,8 +21,8 @@
 - Recommended pivot: **KEEPR / TALLY Sync** — offline deposit+lock → CRDT sync → live owner stream + future-call shift close.
 - Full write-up: `docs/memory/SERVERPOD_TRUE_COLORS_RESEARCH.md`.
 
-## 2026-10-01 — Keys + competitor analysis
+## 2026-10-01 — Free plan lock + Jev freeness check
 
-- Documented `KEYS_SETUP.md`: OpenRouter / Vercel AI Gateway / TypeSafe (signup closed) + `SERVERPOD_CLOUD_TOKEN` for headless scloud.
-- Documented `COMPETITORS.md`: Serverpod vs Firebase/Supabase — capability truth only; no invented latency; Starter disables future calls.
-- JevService now accepts `OPENROUTER_API_KEY` and `AI_GATEWAY_API_KEY` gateways.
+- Locked free path: Serverpod Cloud **Starter 1-month trial** (no card). FutureCalls disabled → `scheduleShiftClose` uses `free_delay`.
+- Jev: **not** on Vercel AI Gateway free-tier models; OpenRouter free models exclude Jev. Real Jev needs tiny paid credit (~$0.00002/call) or stay fail-closed.
+- Docs: `FREE_PLAN.md`. Vercel MCP listed team `teamtitanlink` but no gateway key to live-call Jev.
