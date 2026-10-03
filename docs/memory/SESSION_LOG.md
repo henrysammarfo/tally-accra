@@ -34,3 +34,11 @@
 - GitGuardian blocked PR on 3 scaffold DB/redis passwords in docker-compose / tasks / tests.yml → replaced with low-entropy local placeholders + `passwords.yaml.example`. Tip remediated; GG may still flag older PR commits (no history rewrite — Lovable).
 - Added root `vercel.json` (`tanstack-start-lovable`). Linked Vercel project `tally-accra` on team `teamtitanlink`.
 - Real Vercel failure cause: `BLOCKED_PACKAGE` — `@tanstack/react-start@1.168.32` XSS (GHSA-qx66-fv34-fjm8). Bumped to `@tanstack/react-start@1.168.60` (+ router/plugin).
+
+## 2026-10-03 — Serverpod Cloud live (tallyaccra)
+
+- Henry created Cloud project `tallyaccra` (Starter trial) + `SERVERPOD_CLOUD_TOKEN`.
+- Agent: Flutter web build → `scloud project link -p tallyaccra` → `scloud deploy` → rollout OK.
+- Live: web https://tallyaccra.serverpod.space/ · api https://tallyaccra.api.serverpod.space/
+- Migrations applied (incl. keepr-sync-jev). Jev still fail-closed.
+- Set Vercel `VITE_TALLY_FLUTTER_WEB_URL` to the Cloud web URL.

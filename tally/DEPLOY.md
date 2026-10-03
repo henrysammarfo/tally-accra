@@ -40,10 +40,13 @@ Optional for **real** Jev (~$0.00002/call — not free, but cheapest):
 OPENROUTER_API_KEY=sk-or-...
 ```
 
-## Agent status (2026-10-01)
+## Agent status (2026-10-03)
 
 - Local spine + Flutter UI + KEEPR sync/Jev/free-delay close: done
-- `scloud launch`: **blocked pending Henry's Cloud login / token** (Starter trial)
-- Jev live: **not free** on gateways; needs tiny OpenRouter credit or stays fail-closed
-- AgentRouter Tor smoke on this VM: **passed** (`smoke_llm_tor_ok`)
+- `scloud deploy` to **tallyaccra** (Starter trial → 2026-11-01): **live**
+  - Web: https://tallyaccra.serverpod.space/
+  - API: https://tallyaccra.api.serverpod.space/
+  - Insights: https://tallyaccra.insights.serverpod.space/
+- Jev live: fail-closed until OpenRouter key
+- AgentRouter Tor smoke on earlier VM: passed (`smoke_llm_tor_ok`)
 - CF Worker relay source: `tally/scripts/llm-relay-worker.js` (deploy when Cloud has no Tor)
