@@ -1,0 +1,15 @@
+class: Membership
+table: membership
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  organizationId: UuidValue, relation(parent=organization, onDelete=Cascade)
+  authUserId: UuidValue
+  role: MembershipRole
+  displayName: String
+  createdAt: DateTime, defaultModel=now
+indexes:
+  membership_org_user_idx:
+    fields: organizationId, authUserId
+    unique: true
+  membership_auth_user_idx:
+    fields: authUserId

@@ -1,0 +1,7 @@
+enum: PaymentMethod
+serialized: byName
+values:
+  - mtnMomo
+  - telecelCash
+  - cashTill
+  - card

@@ -1,0 +1,7 @@
+enum: RoomStatus
+serialized: byName
+values:
+  - available
+  - locked
+  - occupied
+  - cleaning

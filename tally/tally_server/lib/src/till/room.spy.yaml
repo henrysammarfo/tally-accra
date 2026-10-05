@@ -1,0 +1,17 @@
+class: Room
+table: room
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  organizationId: UuidValue, relation(parent=organization, onDelete=Cascade)
+  number: String
+  type: String
+  rateGhs: double
+  status: RoomStatus
+  guestName: String?
+  depositAmount: double?
+  checkInAt: DateTime?
+  nights: int?
+indexes:
+  room_org_number_idx:
+    fields: organizationId, number
+    unique: true

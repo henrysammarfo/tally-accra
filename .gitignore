@@ -15,10 +15,20 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
+.env
+.env.*
+!.env.example
 
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
+
+# Serverpod / Flutter
+tally/**/.serverpod/
+tally/**/pgdata/
+tally/tally_server/web/app/
+tally/**/build/
+**/DocC.doccarchive/
 
 # Editor directories and files
 .vscode/*
@@ -30,3 +40,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+**/.dart_tool/
+**/build/
+
+**/Flutter/ephemeral/
+**/Pods/

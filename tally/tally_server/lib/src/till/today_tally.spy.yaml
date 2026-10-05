@@ -1,0 +1,10 @@
+### Aggregated desk view for the current Accra calendar day (UTC+0 window used server-side).
+class: TodayTally
+fields:
+  deposits: List<Deposit>
+  rooms: List<Room>
+  totalGhs: double
+  occupiedCount: int
+  roomCount: int
+  shiftClosed: bool
+  auditTrail: List<AuditEvent>

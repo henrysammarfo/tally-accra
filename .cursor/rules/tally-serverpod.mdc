@@ -1,0 +1,13 @@
+---
+description: Serverpod model and endpoint conventions for tally/**
+globs: tally/**
+alwaysApply: false
+---
+
+# Serverpod conventions
+
+- Spine endpoints: `createDeposit`, `assignNight`, `listToday` (+ auth/org helpers).
+- Models: Organization, Membership, Room, Deposit, ShiftClose, AuditEvent — all tenant-scoped.
+- Use generated client from Flutter; do not hand-roll HTTP for till APIs.
+- Migrations required for every model change; `dart test` for tenant isolation.
+- Deploy via Serverpod Cloud (`scloud`); document demo URL in SESSION_LOG.

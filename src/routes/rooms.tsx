@@ -1,9 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { KeyRound } from "lucide-react";
-import { PageHeading } from "@/components/page-heading";
-import { StatusPill } from "@/components/status-pill";
-import { Button } from "@/components/ui/button";
-import { useTally } from "@/lib/tally-store";
-import { formatGHS } from "@/lib/tally-data";
-export const Route = createFileRoute("/rooms")({ head: () => ({ meta: [{ title: "Rooms & Nights — TALLY" }, { name: "description", content: "Manage Accra guest-house room status, rates, deposits, and locked nights." }, { property: "og:title", content: "Rooms & Nights — TALLY" }, { property: "og:description", content: "Live room roster and night locks." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }), component: RoomsPage });
-function RoomsPage() { const { rooms, toggleRoom } = useTally(); return <><PageHeading eyebrow="House roster · 8 keys" title="Rooms & Nights" description="See who is in, what is paid, and which doors are ready for the next arrival." /><div className="mx-auto max-w-7xl px-6 py-10"><div className="grid gap-4 md:grid-cols-2">{rooms.map((room) => <article key={room.number} className="border border-border p-5"><div className="flex items-start justify-between"><div><span className="text-4xl font-semibold">{room.number}</span><p className="mt-1 text-sm text-muted-foreground">{room.type} · {formatGHS(room.rate)} / night</p></div><StatusPill status={room.status} /></div><div className="mt-8 grid grid-cols-2 gap-4 border-t border-border pt-5 text-sm"><div><span className="text-xs text-muted-foreground">Current guest</span><b className="mt-1 block">{room.guest ?? "—"}</b></div><div><span className="text-xs text-muted-foreground">Deposit</span><b className="mt-1 block">{room.deposit ? formatGHS(room.deposit) : "Not taken"}</b></div><div><span className="text-xs text-muted-foreground">Check-in</span><b className="mt-1 block">{room.checkIn ?? "—"}</b></div><div><span className="text-xs text-muted-foreground">Check-out</span><b className="mt-1 block">{room.checkOut ?? "—"}</b></div></div><Button variant={room.status === "Available" ? "default" : "outline"} className="mt-6 w-full rounded-full" onClick={() => toggleRoom(room.number)}><KeyRound />{room.status === "Available" ? "Lock Night" : "Release Room"}</Button></article>)}</div></div></>; }
+import { LiveTillGate } from "@/components/live-till-gate";
+
+export const Route = createFileRoute("/rooms")({
+  head: () => ({
+    meta: [
+      { title: "Rooms & Nights — TALLY" },
+      {
+        name: "description",
+        content: "Lock and free Accra guest-house rooms on the live Serverpod till.",
+      },
+    ],
+  }),
+  component: RoomsGate,
+});
+
+function RoomsGate() {
+  return (
+    <LiveTillGate
+      title="Rooms & nights"
+      description="Room locks are written by assignNight on Serverpod and scoped per guest-house tenant."
+    />
+  );
+}

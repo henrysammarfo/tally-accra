@@ -11,7 +11,6 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { TallyProvider } from "../lib/tally-store";
 import { SiteShell } from "../components/site-shell";
 
 function NotFoundComponent() {
@@ -80,7 +79,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "TALLY — Accra Guest-House Till" },
-      { name: "description", content: "Fast deposits, locked room nights, and clean daily ledgers for Accra hospitality teams." },
+      {
+        name: "description",
+        content:
+          "Fast deposits, locked room nights, and clean daily ledgers for Accra hospitality teams.",
+      },
       { name: "author", content: "TALLY" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -93,7 +96,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -121,7 +127,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TallyProvider><SiteShell><Outlet /></SiteShell></TallyProvider>
+      <SiteShell>
+        <Outlet />
+      </SiteShell>
     </QueryClientProvider>
   );
 }

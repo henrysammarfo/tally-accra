@@ -1,0 +1,4 @@
+exception: TillException
+fields:
+  message: String
+  code: String
