@@ -14,7 +14,9 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DepositRouteImport } from './routes/deposit'
 import { Route as LedgerRouteImport } from './routes/ledger'
 import { Route as MerchRouteImport } from './routes/merch'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as RoomsRouteImport } from './routes/rooms'
+import { Route as TermsRouteImport } from './routes/terms'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,9 +43,19 @@ const MerchRoute = MerchRouteImport.update({
   path: '/merch',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RoomsRoute = RoomsRouteImport.update({
   id: '/rooms',
   path: '/rooms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -53,7 +65,9 @@ export interface FileRoutesByFullPath {
   '/deposit': typeof DepositRoute
   '/ledger': typeof LedgerRoute
   '/merch': typeof MerchRoute
+  '/privacy': typeof PrivacyRoute
   '/rooms': typeof RoomsRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,7 +75,9 @@ export interface FileRoutesByTo {
   '/deposit': typeof DepositRoute
   '/ledger': typeof LedgerRoute
   '/merch': typeof MerchRoute
+  '/privacy': typeof PrivacyRoute
   '/rooms': typeof RoomsRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,13 +86,31 @@ export interface FileRoutesById {
   '/deposit': typeof DepositRoute
   '/ledger': typeof LedgerRoute
   '/merch': typeof MerchRoute
+  '/privacy': typeof PrivacyRoute
   '/rooms': typeof RoomsRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/deposit' | '/ledger' | '/merch' | '/rooms'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/deposit'
+    | '/ledger'
+    | '/merch'
+    | '/privacy'
+    | '/rooms'
+    | '/terms'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/deposit' | '/ledger' | '/merch' | '/rooms'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/deposit'
+    | '/ledger'
+    | '/merch'
+    | '/privacy'
+    | '/rooms'
+    | '/terms'
   id:
     | '__root__'
     | '/'
@@ -84,7 +118,9 @@ export interface FileRouteTypes {
     | '/deposit'
     | '/ledger'
     | '/merch'
+    | '/privacy'
     | '/rooms'
+    | '/terms'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -93,7 +129,9 @@ export interface RootRouteChildren {
   DepositRoute: typeof DepositRoute
   LedgerRoute: typeof LedgerRoute
   MerchRoute: typeof MerchRoute
+  PrivacyRoute: typeof PrivacyRoute
   RoomsRoute: typeof RoomsRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -133,11 +171,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MerchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/rooms': {
       id: '/rooms'
       path: '/rooms'
       fullPath: '/rooms'
       preLoaderRoute: typeof RoomsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -149,7 +201,9 @@ const rootRouteChildren: RootRouteChildren = {
   DepositRoute: DepositRoute,
   LedgerRoute: LedgerRoute,
   MerchRoute: MerchRoute,
+  PrivacyRoute: PrivacyRoute,
   RoomsRoute: RoomsRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Download, Minus, Plus, Scissors, ShoppingBag, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { PageHeading } from "@/components/page-heading";
 import { TallyMark } from "@/components/tally-logo";
 import { Button } from "@/components/ui/button";
@@ -22,8 +22,10 @@ export const Route = createFileRoute("/merch")({
         content:
           "Streetwear-grade guest-house brand system. Interest list only — not a live payment checkout.",
       },
+      { property: "og:image", content: "https://tally-accra.vercel.app/og-image.svg" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://tally-accra.vercel.app/og-image.svg" },
     ],
   }),
   component: MerchPage,
@@ -39,6 +41,7 @@ function MerchPage() {
   const [phone, setPhone] = useState("+233 ");
   const [pickup, setPickup] = useState("Desk pickup — Osu");
   const [note, setNote] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [confirmation, setConfirmation] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,15 +74,27 @@ function MerchPage() {
       }),
     );
 
-  const submit = () => {
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    // Honeypot: bots filling hidden company field are silently dropped
+    if (honeypot.trim().length > 0) {
+      setError(null);
+      setConfirmation("Order noted — pay on pickup.");
+      setLines([]);
+      return;
+    }
     if (lines.length === 0) return setError("Add at least one item to the bag.");
     if (customer.trim().length < 2) return setError("Enter the customer name.");
-    if (phone.replace(/\D/g, "").length < 9) return setError("Enter a valid phone number.");
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length < 9 || digits.length > 15) {
+      return setError("Enter a valid phone number (9–15 digits).");
+    }
+    if (note.length > 500) return setError("Note is too long (max 500 characters).");
     const order = placeOrder({
-      customer: customer.trim(),
-      phone: phone.trim(),
+      customer: customer.trim().slice(0, 120),
+      phone: phone.trim().slice(0, 32),
       pickup,
-      note: note.trim(),
+      note: note.trim().slice(0, 500),
       lines,
       total,
     });
@@ -87,6 +102,7 @@ function MerchPage() {
     setCustomer("");
     setPhone("+233 ");
     setNote("");
+    setHoneypot("");
     setError(null);
     setConfirmation(`Order ${order.id} placed — ${formatGHS(order.total)}, payable on pickup.`);
   };
@@ -120,8 +136,9 @@ function MerchPage() {
               <article key={product.id} className="flex flex-col border border-border">
                 <img
                   src={product.image}
-                  alt={product.name}
+                  alt={`${product.name} — ${product.blurb}`}
                   loading="lazy"
+                  decoding="async"
                   width={816}
                   height={816}
                   className="aspect-square w-full object-cover"
@@ -204,20 +221,42 @@ function MerchPage() {
                 <strong className="text-lg">{formatGHS(total)}</strong>
               </p>
 
-              <div className="mt-5 space-y-3">
+              <form className="relative mt-5 space-y-3" onSubmit={submit} noValidate>
+                <label className="sr-only" htmlFor="merch-customer">
+                  Customer name
+                </label>
                 <input
+                  id="merch-customer"
+                  name="customer"
+                  autoComplete="name"
+                  required
+                  maxLength={120}
                   value={customer}
                   onChange={(event) => setCustomer(event.target.value)}
                   placeholder="Customer name"
                   className="w-full rounded-full border border-input bg-background px-4 py-2 text-sm"
                 />
+                <label className="sr-only" htmlFor="merch-phone">
+                  Phone number
+                </label>
                 <input
+                  id="merch-phone"
+                  name="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  required
+                  maxLength={32}
                   value={phone}
                   onChange={(event) => setPhone(event.target.value)}
                   placeholder="+233 55 000 0000"
                   className="w-full rounded-full border border-input bg-background px-4 py-2 text-sm"
                 />
+                <label className="sr-only" htmlFor="merch-pickup">
+                  Pickup
+                </label>
                 <select
+                  id="merch-pickup"
+                  name="pickup"
                   value={pickup}
                   onChange={(event) => setPickup(event.target.value)}
                   className="w-full rounded-full border border-input bg-background px-4 py-2 text-sm"
@@ -226,23 +265,43 @@ function MerchPage() {
                   <option>Desk pickup — Labadi</option>
                   <option>Courier within Accra</option>
                 </select>
+                <label className="sr-only" htmlFor="merch-note">
+                  Note
+                </label>
                 <textarea
+                  id="merch-note"
+                  name="note"
                   value={note}
                   onChange={(event) => setNote(event.target.value)}
                   rows={2}
+                  maxLength={500}
                   placeholder="Note for the desk (optional)"
                   className="w-full border border-input bg-background p-3 text-sm"
                 />
-              </div>
-              {error && (
-                <p className="mt-4 border border-border bg-secondary p-3 text-sm">{error}</p>
-              )}
-              {confirmation && (
-                <p className="mt-4 border border-border bg-secondary p-3 text-sm">{confirmation}</p>
-              )}
-              <Button className="mt-5 w-full rounded-full" onClick={submit}>
-                Place order · pay on pickup
-              </Button>
+                {/* Honeypot — leave empty; hidden from assistive tech */}
+                <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+                  <label htmlFor="merch-company">Company</label>
+                  <input
+                    id="merch-company"
+                    name="company"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={honeypot}
+                    onChange={(event) => setHoneypot(event.target.value)}
+                  />
+                </div>
+                {error && (
+                  <p role="alert" className="border border-border bg-secondary p-3 text-sm">
+                    {error}
+                  </p>
+                )}
+                {confirmation && (
+                  <p className="border border-border bg-secondary p-3 text-sm">{confirmation}</p>
+                )}
+                <Button type="submit" className="w-full rounded-full">
+                  Place order · pay on pickup
+                </Button>
+              </form>
             </div>
           </section>
         </div>

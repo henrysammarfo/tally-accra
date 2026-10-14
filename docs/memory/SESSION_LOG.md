@@ -42,3 +42,9 @@
 - Live: web https://tallyaccra.serverpod.space/ · api https://tallyaccra.api.serverpod.space/
 - Migrations applied (incl. keepr-sync-jev). Jev still fail-closed.
 - Set Vercel `VITE_TALLY_FLUTTER_WEB_URL` to the Cloud web URL.
+
+## 2026-10-14 — Launch checklist + honest security + ship
+
+- Marketing: Privacy/Terms, cookie consent, consent-gated Plausible, OG/sitemap/robots, HSTS+security headers, single hero CTA, merch honeypot + validation, contrast fix, custom 404.
+- Security mapped to Serverpod (not Supabase RLS); docs reject “unhackable” — see `docs/SECURITY_HARDENING.md` + `docs/LAUNCH_CHECKLIST.md`.
+- Commit/push main for Vercel redeploy; till remains https://tallyaccra.serverpod.space/

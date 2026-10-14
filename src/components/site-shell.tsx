@@ -25,12 +25,12 @@ export function SiteShell({ children }: { children: ReactNode }) {
         >
           <Link
             to="/"
-            aria-label="Tally home"
+            aria-label="TALLY home"
             className="flex items-center gap-2 text-lg font-semibold tracking-[0.12em]"
           >
             TALLY
           </Link>
-          <nav className="hidden items-center gap-8 md:flex">
+          <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
             {navItems.map(([label, to]) => (
               <Link
                 key={to + label}
@@ -52,13 +52,14 @@ export function SiteShell({ children }: { children: ReactNode }) {
             size="icon"
             className="md:hidden"
             onClick={() => setOpen((value) => !value)}
-            aria-label="Toggle menu"
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
           >
             {open ? <X /> : <Menu />}
           </Button>
         </div>
         {open && (
-          <nav className="border-t border-border px-6 py-4 md:hidden">
+          <nav className="border-t border-border px-6 py-4 md:hidden" aria-label="Mobile">
             {navItems.map(([label, to]) => (
               <Link
                 key={to + label}
@@ -84,15 +85,30 @@ export function SiteShell({ children }: { children: ReactNode }) {
       </header>
       <main>{children}</main>
       <footer className="border-t border-border bg-primary py-10 text-primary-foreground">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 md:flex-row md:items-end md:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 md:flex-row md:items-end md:justify-between">
           <div>
             <TallyLogo />
-            <p className="mt-3 max-w-md text-sm text-primary-foreground/65">
+            <p className="mt-3 max-w-md text-sm text-primary-foreground/80">
               Accra Guest-House Till & Night Ledger. Flutter + Serverpod submission; this site is
               brand and pitch only.
             </p>
+            <nav className="mt-4 flex flex-wrap gap-4 text-sm" aria-label="Legal">
+              <Link to="/privacy" className="underline-offset-2 hover:underline">
+                Privacy
+              </Link>
+              <Link to="/terms" className="underline-offset-2 hover:underline">
+                Terms
+              </Link>
+              <a
+                href="https://tallyaccra.serverpod.space/"
+                className="underline-offset-2 hover:underline"
+                rel="noopener noreferrer"
+              >
+                Live till
+              </a>
+            </nav>
           </div>
-          <p className="text-xs uppercase tracking-[0.14em] text-primary-foreground/50">
+          <p className="text-xs uppercase tracking-[0.14em] text-primary-foreground/70">
             Accra, Ghana · Serverpod spine
           </p>
         </div>

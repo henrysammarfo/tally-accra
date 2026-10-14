@@ -18,8 +18,10 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Deposit → night → today’s tally. One finished Serverpod flow.",
       },
+      { property: "og:image", content: "https://tally-accra.vercel.app/og-image.svg" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://tally-accra.vercel.app/og-image.svg" },
     ],
   }),
   component: Index,
@@ -57,15 +59,18 @@ function Index() {
             Flutter with a real Serverpod backend.
           </p>
           <div
-            className="animate-fade-in-up mt-8 flex flex-wrap gap-3 opacity-0"
+            className="animate-fade-in-up mt-8 flex flex-wrap items-center gap-4 opacity-0"
             style={{ animationDelay: "0.4s" }}
           >
             <Button type="button" className="px-8 py-3 text-base" onClick={openLiveTill}>
-              Open guest till <ExternalLink className="size-4" />
+              Open guest till <ExternalLink className="size-4" aria-hidden />
             </Button>
-            <Button asChild variant="outline" className="px-8 py-3 text-base">
-              <Link to="/merch">Merch & brand</Link>
-            </Button>
+            <Link
+              to="/merch"
+              className="text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            >
+              Merch & brand
+            </Link>
           </div>
 
           <div
@@ -73,17 +78,17 @@ function Index() {
             style={{ animationDelay: "0.55s" }}
           >
             <Feature
-              icon={<Wallet className="size-5" />}
+              icon={<Wallet className="size-5" aria-hidden />}
               title="Take deposit"
               body="Guest, room, MoMo/cash/card — lock in one desk motion."
             />
             <Feature
-              icon={<KeyRound className="size-5" />}
+              icon={<KeyRound className="size-5" aria-hidden />}
               title="Lock the night"
               body="Rooms 101–108 stay tenant-scoped on Serverpod Postgres."
             />
             <Feature
-              icon={<ShieldCheck className="size-5" />}
+              icon={<ShieldCheck className="size-5" aria-hidden />}
               title="Today’s tally"
               body="Live listToday / watchToday totals — nothing critical faked."
             />

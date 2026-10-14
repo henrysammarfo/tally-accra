@@ -7,3 +7,5 @@
 5. Document **env names** in memory docs; never document live values.
 6. On WAF/HTML from AgentRouter: treat as egress block, not necessarily bad key — use Tor or relay.
 7. Fail closed: if LLM key missing or blocked, return a clear error — never invent answers.
+8. Never claim the stack is unhackable — document residual risk in `docs/SECURITY_HARDENING.md`.
+9. Rotate any key that was pasted into chat or historically committed; GitGuardian tips alone do not prove current tree is clean.
