@@ -5,9 +5,9 @@
 - [x] Deposit → room night locked → today’s tally updates (live, persisted)
 - [x] Offline queue → `syncOfflineDeposits` → owner `watchToday` updates
 - [x] Nothing critical faked (no localStorage spine, no mock endpoints)
-- [ ] Demo URL live on Serverpod Cloud (`scloud` needs Henry login)
+- [x] Demo URL live on Serverpod Cloud (`tallyaccra`)
 - [x] Auth required; anonymous till writes rejected
-- [x] Jev fail closed without key; live when `TYPESAFE_API_KEY` set
+- [x] Jev fail closed without key; live when OpenRouter/TypeSafe key set
 
 ## 25% Serverpod stack
 
@@ -15,9 +15,9 @@
 - [x] Generated client used from Flutter
 - [x] Endpoints: `createDeposit`, `assignNight`, `listToday`, `syncOfflineDeposits`
 - [x] Streaming `watchToday` (MessageCentral)
-- [x] Future call `scheduleShiftClose` → `ShiftCloseFutureCall`
-- [x] Jev on server (`recommendRoom` choice, `judgeShift` noul) — Starguide pattern
-- [ ] Cloud deploy (`scloud`)
+- [x] Future call `scheduleShiftClose` → Starter uses honest `free_delay` (FutureCalls off on Starter)
+- [x] Jev on server (`recommendRoom` choice, `judgeShift` noul) — fail-closed without key
+- [x] Cloud deploy (`scloud` → tallyaccra)
 
 ## 25% Craft
 

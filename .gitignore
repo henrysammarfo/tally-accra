@@ -46,3 +46,9 @@ tally/**/build/
 
 **/Flutter/ephemeral/
 **/Pods/
+
+# Demo build intermediates (keep TALLY-demo.mp4 + frames + build_demo.py)
+docs/demo/audio/
+docs/demo/part_*.mp4
+docs/demo/concat.txt
+docs/demo/*.wav
